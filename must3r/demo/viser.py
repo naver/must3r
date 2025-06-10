@@ -62,10 +62,14 @@ class ViserWrapper():
         self.keyframes_only = self.server.gui.add_checkbox(
             "Keyframes Only", initial_value=False
         )
+        self.hide_images = self.server.gui.add_checkbox(
+            "Hide Images", initial_value=False
+        )
 
         self.point_nodes: dict[str, viser.PointCloudHandle] = {}
         self.camera_nodes: dict[str, viser.CameraFrustumHandle] = {}
         self.pointmaps: dict[str, dict] = {}
+        self.images: dict[str, dict] = {}
 
         @self.gui_point_size.on_update
         def _(_) -> None:
@@ -89,6 +93,11 @@ class ViserWrapper():
         @self.keyframes_only.on_update
         def _(_) -> None:
             self.reset_point_cloud_visility()
+
+        @self.hide_images.on_update
+        def _(_) -> None:
+            for frame_id in list(self.camera_nodes.keys()):
+                self.make_camera_frustum(frame_id)
 
         @self.max_points_per_frame.on_update
         def _(_) -> None:
@@ -140,6 +149,24 @@ class ViserWrapper():
                 visible=is_keyframe or not self.keyframes_only.value
         )
 
+    def make_camera_frustum(self, frame_id):
+        fov = self.images[frame_id]['fov']
+        aspect = self.images[frame_id]['aspect']
+        c2w = self.images[frame_id]['c2w']
+        color = self.images[frame_id]['color']
+        img = self.images[frame_id]['img'] if not self.hide_images.value else None
+
+        self.camera_nodes[frame_id] = self.server.scene.add_camera_frustum(
+            get_camera_key(frame_id),
+            fov=fov,
+            aspect=aspect,
+            scale=self.frustum_scale.value,
+            image=img,
+            wxyz=viser_tf.SO3.from_matrix(c2w[:3, :3]).wxyz,
+            position=c2w[:3, 3],
+            color=color
+        )
+
     def set_views(self, frame_ids, rgbs, pointmaps, is_keyframe=None):
         if len(frame_ids) == 0:
             return
@@ -170,16 +197,15 @@ class ViserWrapper():
             fov = 2 * np.arctan2(H / 2, focal)
             aspect = W / H
             color = (20, 20, 20) if not is_keyframe_i else (20, 200, 20)
-            self.camera_nodes[frame_id] = self.server.scene.add_camera_frustum(
-                get_camera_key(frame_id),
-                fov=fov,
-                aspect=aspect,
-                scale=self.frustum_scale.value,
-                image=img,
-                wxyz=viser_tf.SO3.from_matrix(c2w[:3, :3]).wxyz,
-                position=c2w[:3, 3],
-                color=color
-            )
+
+            self.images[frame_id] = {
+                'fov': fov,
+                'aspect': aspect,
+                'c2w': c2w,
+                'color': color,
+                'img': img
+            }
+            self.make_camera_frustum(frame_id)
 
             self.progress_bar.value = int(100 * len(self.pointmaps) / self.num_imgs)
 
