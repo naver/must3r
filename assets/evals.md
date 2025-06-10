@@ -16,7 +16,7 @@
 # Updated Evaluation results
 
 > [!NOTE]  
-> In this released, we fixed a bug in the slam where some frames were in some rare cases, valid keyframes were incorrectly rejected. It improves the results slighly on these edge cases.
+> In this released, we fixed a bug in the slam where, in some rare cases, valid keyframes were incorrectly rejected. It improves the results slighly on these edge cases.
 
 ```
 Here's an example:
