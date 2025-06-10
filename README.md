@@ -135,21 +135,21 @@ IMPORTANT
 "Maximum batch size" -> If you are using a small gpu or you have a lot of images, put 1 to limit the vram usage.  
 
 Modes:
-1 - for a simple video sequence, leave it at "sequence: linspace"
-2 - for an unordered collection of images, change it to "unordered: retrieval"
+1 - for a simple video sequence, leave it at "sequence: linspace"  
+2 - for an unordered collection of images, change it to "unordered: retrieval"  
 
-both of these modes share the same parameters:
+both of these modes share the same parameters:  
 
 Select the Number of memory images (I would say to put as many as possible but to not go above 300, the more images there are, the slower/more memory hungry it'll be)  
-Leave "Render once" toggled OFF. You can toggle it ON if "Number of refinement iterations" > 0
+Leave "Render once" toggled OFF. You can toggle it ON if "Number of refinement iterations" > 0  
 
-3 - for a longer video sequence : "sequence: slam keyframes"
-4 - for a longer video sequence, if the KDTree/slam is too slow for you : "sequence: local context and linspace keyframes"
+3 - for a longer video sequence : "sequence: slam keyframes"  
+4 - for a longer video sequence, if the KDTree/slam is too slow for you : "sequence: local context and linspace keyframes"  
 
-Default params should be good enough, may increase subsample for slam at higher resolutions.
-The online version is equivalent to "sequence: slam keyframes" with local_context=0.
+Default params should be good enough, may increase subsample for slam at higher resolutions.  
+The online version is equivalent to "sequence: slam keyframes" with local_context=0.  
 
-Hit "Run"
+Hit "Run"  
 
 ### Online Visual Odometry Demo (open3d)
 
