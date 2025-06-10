@@ -1,0 +1,34 @@
+MUSt3R
+Copyright 2025-present NAVER Corp.
+
+This project contains subcomponents with separate copyright notices and license terms. 
+Your use of the source code for these subcomponents is subject to the terms and conditions of the following licenses.
+
+---------------------------------------------------------
+PART 1: SEE NOTICES BELOW WITH RESPECT TO SOFTWARE FILES:
+---------------------------------------------------------
+
+- naver/dust3r
+   CC BY-NC-SA 4.0 license, https://github.com/naver/dust3r/blob/main/LICENSE
+
+- naver/croco
+   CC BY-NC-SA 4.0 license, https://github.com/naver/croco/blob/master/LICENSE
+
+- gtolias/how
+   MIT license, https://github.com/gtolias/how/blob/master/LICENSE
+
+- naver/mast3r
+   CC BY-NC-SA 4.0 license, https://github.com/naver/mast3r/blob/main/LICENSE
+
+- isl-org/Open3D 
+   MIT license, https://github.com/isl-org/Open3D/blob/main/LICENSE
+
+-------------------------------------------------
+PART 2: SEE NOTICES BELOW WITH RESPECT TO MODELS:
+-------------------------------------------------
+
+The models were derrived from the following model:
+CroCo v2: CroCo_V2_ViTLarge_BaseDecoder, https://github.com/naver/croco
+The list of training datasets and their respective license can be found in https://github.com/naver/must3r/CHECKPOINTS_NOTICE
+
+Any use of our models are subject, as applicable, to any additional terms and conditions of the corresponding model/dataset license in addition to the terms and conditions of the License to the Materials.
