@@ -54,6 +54,12 @@ micromamba create -n must3r python=3.11 cmake=3.14.0
 micromamba activate must3r 
 pip3 install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126 # use the correct version of cuda for your system
 pip3 install -U xformers==0.0.30 --index-url https://download.pytorch.org/whl/cu126
+
+git clone --recursive https://github.com/naver/must3r
+cd must3r
+# if you have already cloned must3r:
+# git submodule update --init --recursive
+
 pip install -r dust3r/requirements.txt
 pip install -r dust3r/requirements_optional.txt
 pip install -r requirements.txt
