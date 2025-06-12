@@ -5,7 +5,6 @@ import torch
 import cv2
 import time
 import os
-import time
 from tqdm import tqdm
 import logging as log
 import argparse
@@ -21,7 +20,7 @@ from must3r.slam.model import SLAM_MUSt3R
 
 try:
     o3d.cuda
-except AttributeError as e:
+except AttributeError:
     print('Fallback to open3d.cpu')
     o3d.cuda = o3d.cpu  # workaround for module open3d has no attribute cuda
 
@@ -36,23 +35,19 @@ camcols = [  # different frustrum colors for each agent
 
 SKIP_EVERY = 1
 
-
 def grab_frame(camera):
     read = camera.read()
     frame = read[1]
     camid = 0 if len(read) != 3 else read[2]
 
-    for _ in range(SKIP_EVERY - 1):
-        camera.read()
+    for _ in range(SKIP_EVERY - 1): camera.grab()
 
     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) if frame is not None else None
     return img, camid
 
-
 def img2o3d(im):
     res = o3d.cuda.pybind.geometry.Image(im.astype(np.uint8))
     return res
-
 
 def colorize_depth(depth, mode='grayscale'):
     if depth is None:
@@ -68,14 +63,15 @@ def colorize_depth(depth, mode='grayscale'):
         raise ValueError(f"Unknown colorization mode {mode}.")
     return colored_depth.cpu().numpy()
 
-
 # Open3D classes
 # Processing
 class PipelineModel:
     """Controls IO. Methods run
     in worker threads."""
 
-    def __init__(self,
+    def __init__(self, 
+                 model, 
+                 camera,
                  update_view,
                  device=None,
                  res=512,
@@ -109,7 +105,8 @@ class PipelineModel:
 
         self.cv_capture = threading.Condition()  # condition variable
         self.query_view = None
-        self.must3r = args.model
+        self.must3r = model
+        self.camera = camera
         self.depth_in_color = None
 
         self.pcd_stride = 2  # downsample point cloud, may increase frame rate
@@ -133,10 +130,10 @@ class PipelineModel:
 
     def run(self):
         """Run pipeline."""
-        n_pts = 0
         frame_id = 0
         t1 = time.perf_counter()
         cam_centers = []
+        memory_map=None
         while not self.flag_exit:
             if not self.flag_start:
                 if self.query_view is not None:
@@ -146,9 +143,9 @@ class PipelineModel:
                     self.must3r.reset()
                     frame_id = 0
                     cam_centers = []
-                    CAMERA.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    self.camera.set(cv2.CAP_PROP_POS_FRAMES, 0)
             else:
-                self.query_view, camid = grab_frame(CAMERA)
+                self.query_view, camid = grab_frame(self.camera)
                 if self.query_view is None:
                     # print("End of video file, waiting...")
                     continue
@@ -193,7 +190,6 @@ class PipelineModel:
 
                 t0, t1 = t1, time.perf_counter()
                 ms_per_frame = (t1 - t0) * 1000.
-                # ms_per_frame = (t1-t0)*1000./60
                 fps = 1000 / ms_per_frame
                 max_mem = torch.cuda.max_memory_allocated() / MB
                 if frame_id % 60 == 0 and frame_id > 0:
@@ -209,12 +205,16 @@ class PipelineModel:
                 camc_frame.point.colors = o3d.cuda.pybind.core.Tensor(np.zeros_like(tempcamc), dtype=dtype)
 
                 # Prepare memory map if needed
-                memory_map = self.must3r.fetch_memory_map(self.viz_conf)
-                if memory_map is not None:
-                    mempts, memcols = memory_map
-                    memory_map = o3d.cuda.pybind.t.geometry.PointCloud()
-                    memory_map.point.positions = o3d.cuda.pybind.core.Tensor(mempts.cpu().numpy(), dtype=dtype)
-                    memory_map.point.colors = o3d.cuda.pybind.core.Tensor(memcols.cpu().numpy(), dtype=dtype)
+                if frame_id == 0:
+                    mmap = self.must3r.fetch_memory_map(self.viz_conf)
+                    if mmap is not None : # only load memory map at first frame
+                        mempts, memcols = mmap
+                        memory_map = o3d.cuda.pybind.t.geometry.PointCloud()
+                        memory_map.point.positions = o3d.cuda.pybind.core.Tensor(mempts.cpu().numpy(), dtype=dtype)
+                        memory_map.point.colors = o3d.cuda.pybind.core.Tensor(memcols.cpu().numpy(), dtype=dtype)
+                else:
+                    memory_map = None 
+                    
                 focal_el = self.must3r.get_true_focals()[camid]
                 if isinstance(focal_el, list):
                     focal_el = focal_el[-1]
@@ -512,8 +512,10 @@ class PipelineController:
     operate on the main thread.
     """
 
-    def __init__(self, args):
-        self.pipeline_model = PipelineModel(self.update_view,
+    def __init__(self, args, camera):
+        self.pipeline_model = PipelineModel(args.model, 
+                                            camera,
+                                            self.update_view,
                                             device=args.device,
                                             res=args.res,
                                             show_cameras=not args.hide_cameras,
@@ -596,7 +598,6 @@ if __name__ == "__main__":
     parser.add_argument('--min_conf_keyframe', default=1.2, type=float, help="Ignore 3D points below this confidence.")
     parser.add_argument('--overlap_percentile', default=85., type=float,
                         help="Percentile of image distances to compute overlap")
-    parser.add_argument('--filter', action='store_true', default=False, help="Try different filtering setups")
     parser.add_argument('--varying_focals', action='store_true', default=False,
                         help="Focals may vary along sequence (e.g. zoom-in/out).")
 
@@ -638,7 +639,7 @@ if __name__ == "__main__":
 
     if args.gui:
         # Main GUI
-        PipelineController(args)
+        PipelineController(args, CAMERA)
         tolog = {}
     else:
         # Only write output
@@ -669,30 +670,8 @@ if __name__ == "__main__":
 
     if args.output is not None:
         # Write full trajectory
-        if not args.filter:
-            args.model.write_all_poses(os.path.join(args.output, 'all_poses.npz'), **tolog)
-        else:
-            # Postprocessing
-            filtering_modes = [None, 'laplacian', 'laplacian_conf']
-            filtering_alphas = [.1]  
-            all_filtering_steps = [256]
-
-            for filtering_mode in filtering_modes:
-                for filtering_alpha in filtering_alphas:
-                    for filtering_steps in all_filtering_steps:
-                        tag = "all_poses"
-                        if filtering_mode is not None:
-                            tag += f"{filtering_mode}_{filtering_steps}-steps_{filtering_alpha}-alpha"
-                        outfile = os.path.join(args.output, tag + '.npz')
-                        args.model.write_all_poses(outfile,
-                                                   filtering_mode=filtering_mode if filtering_alpha is not None else None,
-                                                   filtering_steps=filtering_steps,
-                                                   filtering_alpha=filtering_alpha, **tolog)
-                        if filtering_mode is None:
-                            continue
-                    if filtering_mode is None:
-                        continue
-
+        args.model.write_all_poses(os.path.join(args.output, 'all_poses.npz'), **tolog)
+        
         # Export memory for later use
         outname = os.path.join(args.output, "memory.pkl")
         count = 0
