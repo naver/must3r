@@ -185,7 +185,6 @@ def get_map(ptscolsconfs, confthr):
 def postproc_pred(img,
                   res,
                   is_first_frame,
-                  last_kf_id,
                   seq_focals,
                   fixed_focal=True,
                   overlap_mode='nn-norm',
@@ -288,7 +287,6 @@ class MUSt3R_Agent():
                inp,
                pred,
                is_first_frame,
-               last_kf_id,
                overlap_mode,
                overlap_tree,
                kf_x_subsamp,
@@ -300,7 +298,6 @@ class MUSt3R_Agent():
         selpts3d, pts3d, colors, depth, conf, focal, w2c, cam_center, iskeyframe = postproc_pred(img=inp,
                                                                                                  res=pred,
                                                                                                  is_first_frame=is_first_frame,
-                                                                                                 last_kf_id=last_kf_id,
                                                                                                  seq_focals=self.seq_focals,
                                                                                                  fixed_focal=self.fixed_focal,
                                                                                                  overlap_mode=overlap_mode,
@@ -495,8 +492,6 @@ class SLAM_MUSt3R():
             selpts3d, pts3d, colors, depth, conf, focal, w2c, cam_center, iskeyframe = self.agents[cam_id].update(query_view_prep,
                                                                                                                   pred,
                                                                                                                   self.memory is None,  # is first frame
-                                                                                                                  max(self.keyframes) if self.keyframes != [
-                                                                                                                  ] else None,  # last kf id
                                                                                                                   overlap_mode=self.overlap_mode,
                                                                                                                   overlap_tree=self.overlap_tree,
                                                                                                                   kf_x_subsamp=self.kf_x_subsamp,
