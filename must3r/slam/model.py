@@ -67,6 +67,7 @@ def get_overlap_score(res,
                       kf_x_subsamp=None,
                       min_conf_keyframe=1.5,
                       percentile=70,  # 50,
+                      eps=1e-9,
                       ):
     outscore = 0.
     if mode == 'meanconf':
@@ -74,7 +75,6 @@ def get_overlap_score(res,
     elif mode == 'medianconf':
         outscore = res['conf'].median()
     elif 'nn' in mode:
-        # if overlap_tree is not None and overlap_tree.is_init():
         pts3d = res['pts3d'][0, 0, ::kf_x_subsamp, ::kf_x_subsamp] if kf_x_subsamp else res['pts3d']
         msk = res['conf'][0, 0, ::kf_x_subsamp, ::kf_x_subsamp] if kf_x_subsamp else res['conf']
         msk = msk > min_conf_keyframe
@@ -83,8 +83,8 @@ def get_overlap_score(res,
             dists = overlap_tree.query(pts3d[msk], cam_center=cam_center)
             if 'norm' in mode:
                 depths = res['pts3d_local'][0, 0, ::kf_x_subsamp, ::kf_x_subsamp, -1]
-                dists /= depths[msk].cpu().numpy()
-            # ended up in an unseen quadrant, put a number to avoid getting a nan from np.percentile
+                dists /= depths[msk].cpu().numpy() + eps
+            # if ended up in an unseen quadrant, put a number to avoid getting a nan from np.percentile
             dists[np.isposinf(dists)] = np.finfo(dists.dtype).max
             outscore = np.percentile(dists, percentile)
     else:
@@ -102,7 +102,7 @@ def preproc_frame(img, idx, res=512, transform=ImgNorm):
     W1, H1 = img.size
     halfw, halfh = cx, cy = W1 // 2, H1 // 2
     longsize = res
-    if res in [224, 336, 448]:
+    if res in [224, 336, 448]: 
         longsize = max(W1, H1) / min(W1, H1) * res  # mindim has to be at least 224
     # resize long side to given size
     img = _resize_pil_image(img, longsize)
@@ -112,7 +112,7 @@ def preproc_frame(img, idx, res=512, transform=ImgNorm):
 
     to_orig_focal = W1 / W
 
-    if res in [224, 336, 448]:
+    if res in [224, 336, 448]: # hardcoded from specific training runs, could be automatically detected
         halfw = halfh = res // 2  # square crop
     else:
         # make sure we have multiple of 16
@@ -142,9 +142,8 @@ def build_intr(focal, W, H, device, dtype):
     return out
 
 
-def get_camera_pose(res, seq_focal, HW, is_first_frame=False, with_scale=False, rectify=True):
+def get_camera_pose(res, seq_focal, HW, is_first_frame=False, rectify=True):
     device = res['pts3d'].device
-    dtype = res['pts3d'].dtype
     B = res['pts3d'].shape[1]
 
     H, W = HW
@@ -154,7 +153,7 @@ def get_camera_pose(res, seq_focal, HW, is_first_frame=False, with_scale=False, 
     focal = estimate_focal_knowing_depth(res['pts3d_local'][0], pp, focal_mode='weiszfeld')
     focal_ratio = 1.
     if seq_focal is not None:
-        focal_ratio = seq_focal / focal[:, None]
+        focal_ratio = seq_focal / focal[:, None]  
 
     if is_first_frame:  # first frame defines the origin of the coordinate system
         R = torch.eye(3, device=device).repeat(B, 1, 1)
@@ -162,21 +161,11 @@ def get_camera_pose(res, seq_focal, HW, is_first_frame=False, with_scale=False, 
     else:
         pts3d_local = res['pts3d_local'][0].view(B, -1, 3)
         if rectify:
-            # current_intr = build_intr(seq_focal, W, H, device, dtype)
-            # seq_intr = build_intr(focal, W, H, device, dtype)
-            # # rectify pts3d_local according to sequence focal
-            # pts3d_local = seq_intr.inverse() @ current_intr @ res['pts3d_local'][0, 0].view(-1, 3).T
-            # pts3d_local = pts3d_local.T
-            # pts3d_local *= seq_focal/focal
             pts3d_local[..., -1] *= focal_ratio
 
-        trf = roma.rigid_points_registration(pts3d_local, res['pts3d'][0].view(
-            B, -1, 3), weights=res['conf'][0].view(B, -1) - 1., compute_scaling=with_scale)
-        if with_scale:
-            R, T, s = trf
-        else:
-            R, T = trf
-
+        R, T = roma.rigid_points_registration(pts3d_local, res['pts3d'][0].view(
+            B, -1, 3), weights=res['conf'][0].view(B, -1) - 1., compute_scaling=False)
+       
     c2w = torch.eye(4, device=device).repeat(B, 1, 1)
     c2w[:, :3, :3] = R
     c2w[:, :3, 3] = T
@@ -204,7 +193,6 @@ def postproc_pred(img,
                   kf_x_subsamp=None,
                   keyframe_overlap_thr=.15,
                   min_conf_keyframe=1.5,
-                  min_keyframe_spacing=1,  # 8
                   overlap_percentile=70,
                   img_mean=[0.5, 0.5, 0.5],
                   img_std=[0.5, 0.5, 0.5]):
@@ -219,7 +207,7 @@ def postproc_pred(img,
     # Mask pointmap and colors
     msk = res['conf'] > min_conf_keyframe
 
-    if kf_x_subsamp:
+    if kf_x_subsamp: # view subsampling to increase frame rate
         msk = msk[0, 0, ::kf_x_subsamp, ::kf_x_subsamp]
         pts = res['pts3d'][0, 0, ::kf_x_subsamp, ::kf_x_subsamp][msk]
     else:
@@ -244,14 +232,13 @@ def postproc_pred(img,
     # Check if memory frame
     iskeyframe = is_first_frame or (
         choose_keyframe_from_overlap(res['overlap_score'], keyframe_overlap_thr, overlap_mode)
-        and (img['idx'] - last_kf_id) >= min_keyframe_spacing
         and conf.median() > min_conf_keyframe
     )
 
     allpts = res['pts3d'][0, 0]
 
     out = (pts,
-           allpts,  # all pts
+           allpts, 
            cols.to(torch.float32),
            depth,
            conf,
@@ -307,7 +294,6 @@ class MUSt3R_Agent():
                kf_x_subsamp,
                keyframe_overlap_thr,
                min_conf_keyframe,
-               min_keyframe_spacing,
                overlap_percentile,
                to_orig_focal):
 
@@ -322,7 +308,6 @@ class MUSt3R_Agent():
                                                                                                  kf_x_subsamp=kf_x_subsamp,
                                                                                                  keyframe_overlap_thr=keyframe_overlap_thr,
                                                                                                  min_conf_keyframe=min_conf_keyframe,
-                                                                                                 min_keyframe_spacing=min_keyframe_spacing,
                                                                                                  overlap_percentile=overlap_percentile,
                                                                                                  img_mean=self.img_mean,
                                                                                                  img_std=self.img_std
@@ -348,7 +333,6 @@ class SLAM_MUSt3R():
                  kf_x_subsamp=4,
                  keyframe_overlap_thr=.15,
                  min_conf_keyframe=1.5,
-                 min_keyframe_spacing=1,
                  overlap_percentile=70.,
                  rerender=False,
                  fixed_focal=True,
@@ -357,11 +341,10 @@ class SLAM_MUSt3R():
                  num_agents=1,
                  device='cuda:0',
                  num_init_frames=1,
-                 force_first_keyframes=None):
+                 ):
 
         self.agents = [MUSt3R_Agent(fixed_focal) for _ in range(num_agents)]
         self.num_init_frames = num_init_frames
-        self.force_first_keyframes = force_first_keyframes
 
         # inference resolution
         self.res = res
@@ -376,7 +359,6 @@ class SLAM_MUSt3R():
         self.kf_x_subsamp = kf_x_subsamp
         self.keyframe_overlap_thr = keyframe_overlap_thr
         self.min_conf_keyframe = min_conf_keyframe
-        self.min_keyframe_spacing = min_keyframe_spacing
         self.overlap_percentile = overlap_percentile
         self.overlap_mode = overlap_mode
         self.rerender = rerender  # once sequence is processed, repredict everything from full memory
@@ -533,11 +515,8 @@ class SLAM_MUSt3R():
                                                                                                                   kf_x_subsamp=self.kf_x_subsamp,
                                                                                                                   keyframe_overlap_thr=self.keyframe_overlap_thr,
                                                                                                                   min_conf_keyframe=self.min_conf_keyframe,
-                                                                                                                  min_keyframe_spacing=self.min_keyframe_spacing,
                                                                                                                   overlap_percentile=self.overlap_percentile,
                                                                                                                   to_orig_focal=to_orig_focal)
-            if self.force_first_keyframes is not None and len(self.all_timestamps) < self.force_first_keyframes:
-                iskeyframe = True
             self.all_timestamps.append(frame_id)
             self.all_poses.append(w2c.inverse())
             self.all_confs.append(conf.mean())

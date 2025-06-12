@@ -594,8 +594,6 @@ if __name__ == "__main__":
     parser.add_argument('--keyframe_overlap_thr', default=.1, type=float,
                         help="At least this overlap to add incoming image in memory")
     parser.add_argument('--min_conf_keyframe', default=1.2, type=float, help="Ignore 3D points below this confidence.")
-    parser.add_argument('--min_keyframe_spacing', default=1, type=int,
-                        help="Minimal spacing between selected keyframes to lower memory.")
     parser.add_argument('--overlap_percentile', default=85., type=float,
                         help="Percentile of image distances to compute overlap")
     parser.add_argument('--filter', action='store_true', default=False, help="Try different filtering setups")
@@ -621,7 +619,6 @@ if __name__ == "__main__":
                              overlap_mode=args.overlap_mode,
                              keyframe_overlap_thr=args.keyframe_overlap_thr,
                              min_conf_keyframe=args.min_conf_keyframe,
-                             min_keyframe_spacing=args.min_keyframe_spacing,
                              overlap_percentile=args.overlap_percentile,
                              rerender=args.rerender,
                              keep_memory=args.output is not None,
@@ -630,7 +627,7 @@ if __name__ == "__main__":
                              num_agents=len(args.input),
                              device=args.device,
                              num_init_frames=args.num_init_frames,
-                             force_first_keyframes=args.force_first_keyframes)
+                             )
 
     # Prepare Camera Stream
     CAMERA = AutoMultiLoader(args.input, args.image_string)
@@ -677,8 +674,8 @@ if __name__ == "__main__":
         else:
             # Postprocessing
             filtering_modes = [None, 'laplacian', 'laplacian_conf']
-            filtering_alphas = [.1]  # [.05, .1, .5]
-            all_filtering_steps = [256]  # [1,2,4,8,16,32,64,128,256,512] #[0,1,2,4,8,16]
+            filtering_alphas = [.1]  
+            all_filtering_steps = [256]
 
             for filtering_mode in filtering_modes:
                 for filtering_alpha in filtering_alphas:
