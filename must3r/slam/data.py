@@ -24,7 +24,7 @@ class BaseLoader():
         elif os.path.isdir(inp):
             self.CAMERA = ImageCollection(inp, image_string)
         elif os.path.isfile(inp):
-            self.CAMERA = cv2.VideoCapture(inp)
+            self.CAMERA = VideoFile(inp)
         else:
             raise ValueError(f"Incorrect input {inp} for BaseLoader")
 
@@ -33,6 +33,9 @@ class BaseLoader():
 
     def set(self, target=cv2.CAP_PROP_POS_FRAMES, value=0):
         self.CAMERA.set(target, value)
+
+    def grab(self):
+        self.CAMERA.grab()
 
     def read(self):
         return self.CAMERA.read()
@@ -53,17 +56,29 @@ class AutoMultiLoader(BaseLoader):
     def set(self, target=cv2.CAP_PROP_POS_FRAMES, value=0):
         for i in range(len(self.CAMERAS)):
             self.CAMERAS[i].set(target, value)
-
+    
+    def next_agent(self):
+        self.whos_turn = (self.whos_turn + 1) % len(self.CAMERAS)
+        
+    def grab(self):
+        for _ in range(len(self.CAMERAS)):
+            self.CAMERAS[self.whos_turn].grab()
+            self.next_agent()
+            
     def read(self):
         frame = None
         loop_c = 0
         while frame is None and loop_c < len(self.CAMERAS):
             ret, frame = self.CAMERAS[self.whos_turn].read()
             camid = self.whos_turn
-            self.whos_turn = (self.whos_turn + 1) % len(self.CAMERAS)
+            self.next_agent()
             loop_c += 1
+        # TODO: batched forward for multiple agents to decrease impact in framerate
         return ret, frame, camid
 
+class VideoFile(cv2.VideoCapture):
+    def __len__(self):
+        return int(self.get(cv2.CAP_PROP_FRAME_COUNT))
 
 class ImageCollection():
     def __init__(self, rootdir, image_string=None, preload=True):
@@ -93,6 +108,12 @@ class ImageCollection():
         else:
             raise NotImplementedError(f"implement what you want to do with {target}")
 
+    def next_frame(self):
+        self.current_frame += 1
+        
+    def grab(self):
+        self.next_frame()
+        
     def read(self):
         im = None
         if self.current_frame < len(self):
@@ -100,5 +121,5 @@ class ImageCollection():
                 im = self.all_images[self.current_frame]
             else:
                 im = cv2.imread(os.path.join(self.rootdir, self.frames[self.current_frame]))
-            self.current_frame += 1
+            self.next_frame()
         return None, im  # match cv2.VideoCapture signature
