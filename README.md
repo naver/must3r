@@ -55,7 +55,7 @@ micromamba activate must3r
 pip3 install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126 # use the correct version of cuda for your system
 pip3 install -U xformers==0.0.30 --index-url https://download.pytorch.org/whl/cu126
 
-git clone --recursive https://github.com/naver/must3r
+git clone --recursive https://github.com/naver/must3r.git
 cd must3r
 # if you have already cloned must3r:
 # git submodule update --init --recursive
@@ -68,7 +68,7 @@ pip install -r requirements.txt
 pip install faiss-cpu  # or the offically supported way (not tested): micromamba install -c pytorch faiss-cpu=1.11.0  # faiss-gpu=1.11.0 
 mkdir build
 cd build
-git clone https://github.com/jenicek/asmk
+git clone https://github.com/jenicek/asmk.git
 cd asmk/cython/
 cythonize *.pyx
 cd ..
@@ -117,9 +117,12 @@ f7c133906bcfd4fe6ee157a9ffa85a23  MUSt3R_512_retrieval_trainingfree.pth
 
 ### Offline Gradio (+viser) Demo
 
-```bash
-python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512_trainingfree.pth --image_size 512 --amp bf16 --viser
+By default, `demo.py` will open a gradio instance on localhost:7860. If you launch the demo with `--viser`, it will also lauch a viser instance on localhost:8080. Load the images with gradio, hit run and visualize the reconstruction as it's being made in the viser tab.
 
+```bash
+python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512_retrieval_trainingfree.pth --image_size 512 --viser
+
+# use --amp bf16 if your gpu supports
 # Use --local_network to make it accessible on the local network, or --server_name to specify the url manually
 # Use --server_port to change the port, by default it will search for an available port starting at 7860
 # Use --device to use a different device, by default it's "cuda"
@@ -127,10 +130,13 @@ python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512
 # --allow_local_files adds a second tab to load images from a local directory
 
 # other examples
-# 224 resolution, fp16
-python3 demo.py --weights /path/to/MUSt3R_224_cvpr.pth --retrieval /path/to/MUSt3R_224_trainingfree.pth --image_size 224 --viser --allow_local_files --amp fp16
+# 512 resolution bf16, allow local files
+python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512_retrieval_trainingfree.pth --image_size 512 --amp bf16 --viser --allow_local_files
+
+# 224 resolution, fp16, allow local files
+python3 demo.py --weights /path/to/MUSt3R_224_cvpr.pth --retrieval /path/to/MUSt3R_224_retrieval_trainingfree.pth --image_size 224 --viser --allow_local_files --amp fp16
 # 768 resolution (will use interpolated positional embeddings)
-python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512_trainingfree.pth --image_size 768 --amp bf16 --viser
+python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512_retrieval_trainingfree.pth --image_size 768 --amp bf16 --viser
 ```
 
 select images
@@ -160,6 +166,11 @@ Hit "Run"
 ### Online Visual Odometry Demo (open3d)
 
 ```bash
+# examples
+# slam demo from a webcam (512 model)
+python slam.py --chkpt /path/to/MUSt3R_512.pth --res 512 --subsamp 4 --gui --input cam:0 
+
+# slam demo from a directory of images (224 model)
 python slam.py \
 	--chkpt "/path/to/MUSt3R_224_cvpr.pth" \
 	--res 224 \
@@ -169,6 +180,9 @@ python slam.py \
   --overlap_percentile 85 \
 	--input "/path_to/TUM_RGBD/rgbd_dataset_freiburg1_xyz/rgb" \  # can be a folder of video frames, or a webcam: cam:0
 	--gui
+
+# slam demo without a gui (it will write final memory state <memory.pkl> and camera trajectory <all_poses.npz>, optionally rerendered with --rerender)
+python slam.py --chkpt /path/to/MUSt3R_512.pth --res 512 --subsamp 4 --input /path/to/video.mp4 --output /path/to/export
 ```
 
 Hit the start toggle on the top right
