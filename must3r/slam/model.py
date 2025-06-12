@@ -16,7 +16,6 @@ from dust3r.datasets.utils.transforms import ImgNorm
 from dust3r.utils.image import _resize_pil_image
 
 from .nns import get_searcher
-from .tools import laplacian_smoothing, laplacian_smoothing_with_confidence
 
 
 # Forward and processing
@@ -130,9 +129,12 @@ def choose_keyframe_from_overlap(overlap_score, thr, overlap_mode):
 
 
 def mean_focal(seq_focals):  # wavg of seq focals
-    focals = np.array(seq_focals['f'])
-    confs = np.array(seq_focals['conf'])
-    return (focals * confs / confs.sum()).sum()
+    out = None
+    if len(seq_focals['f']):
+        focals = np.array(seq_focals['f'])
+        confs = np.array(seq_focals['conf'])
+        out = (focals * confs / confs.sum()).sum()
+    return out
 
 
 def build_intr(focal, W, H, device, dtype):
@@ -147,12 +149,11 @@ def get_camera_pose(res, seq_focal, HW, is_first_frame=False, rectify=True):
     B = res['pts3d'].shape[1]
 
     H, W = HW
-    s = 1.0
     pp = torch.tensor((W / 2, H / 2), device=device)
 
     focal = estimate_focal_knowing_depth(res['pts3d_local'][0], pp, focal_mode='weiszfeld')
     focal_ratio = 1.
-    if seq_focal is not None:
+    if seq_focal is not None and rectify:
         focal_ratio = seq_focal / focal[:, None]  
 
     if is_first_frame:  # first frame defines the origin of the coordinate system
@@ -160,8 +161,7 @@ def get_camera_pose(res, seq_focal, HW, is_first_frame=False, rectify=True):
         T = torch.zeros(3, device=device).repeat(B, 1)
     else:
         pts3d_local = res['pts3d_local'][0].view(B, -1, 3)
-        if rectify:
-            pts3d_local[..., -1] *= focal_ratio
+        pts3d_local[..., -1] *= focal_ratio
 
         R, T = roma.rigid_points_registration(pts3d_local, res['pts3d'][0].view(
             B, -1, 3), weights=res['conf'][0].view(B, -1) - 1., compute_scaling=False)
@@ -369,11 +369,12 @@ class SLAM_MUSt3R():
         self.memory_map = None
         self.memory_data = []
         self.memory_overlap_tree = None
-
-        self.reset()
-
+        
         if load_memory is not None:
             self.load_memory(load_memory)
+        
+        self.reset()
+
 
     def reset(self):
         # Reset data structures to loaded memory if available else full reinit
@@ -394,7 +395,7 @@ class SLAM_MUSt3R():
         self.all_images = []
         self.all_pts3d = None
 
-        self.mem_was_loaded = self.memory_map is not None  # reset to loaded memory
+        self.mem_was_loaded = self.memory_memory is not None  # reset to loaded memory
         # Reset all agents
         for i in range(len(self.agents)):
             self.agents[i].reset()
@@ -413,20 +414,6 @@ class SLAM_MUSt3R():
         timestamps = np.stack(self.all_timestamps).astype(int)
         conf = torch.stack(self.all_confs).cpu().numpy()
         focals = self.get_true_focals()
-
-        if filtering_mode is not None:
-            if 'laplacian' in filtering_mode:
-                trajectory = all_poses[:, :3, -1]
-                if 'conf' in filtering_mode:
-                    conf_remap = (conf - conf.min()) / (conf.max() - conf.min())  # remap [1,inf] in between [0,1]
-                    smoothed_trajectory = laplacian_smoothing_with_confidence(
-                        trajectory, conf_remap, alpha=filtering_alpha, iterations=filtering_steps)
-                else:
-                    smoothed_trajectory = laplacian_smoothing(
-                        trajectory, alpha=filtering_alpha, iterations=filtering_steps)
-                all_poses[:, :3, -1] = smoothed_trajectory
-            else:
-                raise ValueError(f"Unknown filtering mode {filtering_mode}")
 
         np.savez(path, poses=all_poses, timestamps=timestamps, confs=conf, focal=focals, **tolog)
 
