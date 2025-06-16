@@ -31,3 +31,33 @@ def get_quadrant_id(rays, quadrant_divider=4, eps=1e-5):
     return quadrant_index.astype(int)
 
 
+def laplacian_smoothing(trajectory, alpha=0.5, iterations=10):
+    smoothed_trajectory = trajectory.copy()
+    N = len(trajectory)
+    for _ in range(iterations):
+        for i in range(1, N - 1):  # Exclude endpoints from smoothing
+            smoothed_trajectory[i] = (1 - alpha) * smoothed_trajectory[i] + (alpha / 2) * \
+                (smoothed_trajectory[i - 1] + smoothed_trajectory[i + 1])
+    return smoothed_trajectory
+
+
+def laplacian_smoothing_with_confidence(trajectory, confidence, alpha=0.5, iterations=10):
+    smoothed_trajectory = trajectory.copy()
+    N = len(trajectory)
+    for _ in range(iterations):
+        for i in range(1, N - 1):  # Exclude endpoints from smoothing
+            # Weighted average based on confidence
+            weight_self = (1 - alpha) * confidence[i]
+            weight_previous = alpha * (1 - confidence[i - 1]) / 2
+            weight_next = alpha * (1 - confidence[i + 1]) / 2
+            sumw = weight_self + weight_previous + weight_next
+            # normalize
+            weight_self /= sumw
+            weight_previous /= sumw
+            weight_next /= sumw
+
+            smoothed_trajectory[i] = (
+                weight_self * smoothed_trajectory[i] +
+                weight_previous * smoothed_trajectory[i - 1] +
+                weight_next * smoothed_trajectory[i + 1])
+    return smoothed_trajectory

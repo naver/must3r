@@ -16,7 +16,7 @@ from dust3r.datasets.utils.transforms import ImgNorm
 from dust3r.utils.image import _resize_pil_image
 
 from .nns import get_searcher
-
+from .tools import laplacian_smoothing, laplacian_smoothing_with_confidence
 
 # Forward and processing
 @torch.no_grad()
@@ -405,12 +405,26 @@ class SLAM_MUSt3R():
         # would be better if agid was a tag instead of an int
         return {agid: agent.get_true_focal() for agid, agent in enumerate(self.agents)}
 
-    def write_all_poses(self, path, filtering_mode=None, filtering_steps=5, filtering_alpha=.5, **tolog):
+    def write_all_poses(self, path, filtering_mode=None, filtering_steps=5, filtering_alpha=.5, **tolog):        
         print(f"Writing full trajectory in {path}")
         all_poses = torch.stack(self.all_poses).cpu().numpy()
         timestamps = np.stack(self.all_timestamps).astype(int)
         conf = torch.stack(self.all_confs).cpu().numpy()
         focals = self.get_true_focals()
+
+        if filtering_mode is not None:
+            if 'laplacian' in filtering_mode:
+                trajectory = all_poses[:, :3, -1]
+                if 'conf' in filtering_mode:
+                    conf_remap = (conf-conf.min())/(conf.max()-conf.min())  # remap [1,inf] in between [0,1]
+                    smoothed_trajectory = laplacian_smoothing_with_confidence(
+                        trajectory, conf_remap, alpha=filtering_alpha, iterations=filtering_steps)
+                else:
+                    smoothed_trajectory = laplacian_smoothing(
+                        trajectory, alpha=filtering_alpha, iterations=filtering_steps)
+                all_poses[:, :3, -1] = smoothed_trajectory
+            else:
+                raise ValueError(f"Unknown filtering mode {filtering_mode}")
 
         np.savez(path, poses=all_poses, timestamps=timestamps, confs=conf, focal=focals, **tolog)
 

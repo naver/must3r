@@ -585,6 +585,7 @@ if __name__ == "__main__":
     parser.add_argument('--skip_every', default=1, type=int, help="Subsample input by skipping frames.")
     parser.add_argument('--rerender', action='store_true', default=False, help="Rerender all frames at the end.")
     parser.add_argument('--rerender_bs', default=64, type=int, help="Re-rendering batch size")
+    parser.add_argument('--filter', action='store_true', default=False, help="Minimal Laplacian filtering after rerender.")
 
     # Hyperparams
     parser.add_argument('--searcher', default="kdtree-scipy-quadrant_x2", type=str,
@@ -670,7 +671,18 @@ if __name__ == "__main__":
 
     if args.output is not None:
         # Write full trajectory
-        args.model.write_all_poses(os.path.join(args.output, 'all_poses.npz'), **tolog)
+        if not args.filter:
+            args.model.write_all_poses(os.path.join(args.output, 'all_poses.npz'), **tolog)
+        else:
+            # Postprocessing
+            filtering_mode = 'laplacian'
+            filtering_alpha = .1
+            filtering_steps = 256
+            outfile = os.path.join(args.output, f"all_poses{filtering_mode}_{filtering_steps}-steps_{filtering_alpha}-alpha.npz")
+            args.model.write_all_poses(outfile,
+                                       filtering_mode=filtering_mode,
+                                       filtering_steps=filtering_steps,
+                                       filtering_alpha=filtering_alpha, **tolog)        
         
         # Export memory for later use
         outname = os.path.join(args.output, "memory.pkl")
