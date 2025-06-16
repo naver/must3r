@@ -65,7 +65,7 @@ pip install -r dust3r/requirements_optional.txt
 pip install -r requirements.txt
 
 # install asmk
-pip install faiss-cpu  # or the offically supported way (not tested): micromamba install -c pytorch faiss-cpu=1.11.0  # faiss-gpu=1.11.0 
+pip install faiss-cpu  # or the officially supported way (not tested): micromamba install -c pytorch faiss-cpu=1.11.0  # faiss-gpu=1.11.0 
 mkdir build
 cd build
 git clone https://github.com/jenicek/asmk.git
