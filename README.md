@@ -139,29 +139,34 @@ python3 demo.py --weights /path/to/MUSt3R_224_cvpr.pth --retrieval /path/to/MUSt
 python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512_retrieval_trainingfree.pth --image_size 768 --amp bf16 --viser
 ```
 
-select images
+> [!Note]
+>  IMPORTANT: Explanation of the demo parameters
 
-"Number of refinement iterations" increase it to 1 or 2 to do multiple pass on the keyframes (useful for loop closure)  
+1) select images:  
+     - you can upload images using the gradio.File component.
+     - if you use `--allow_local_files`, a second tab will appear: `local_path`. In this tab, you can paste a directory path from your local machine and hit `load` to quickly select all the images inside this directory (not recursive).
 
-IMPORTANT  
-"Maximum batch size" -> If you are using a small gpu or you have a lot of images, put 1 to limit the vram usage.  
+2) select global parameters
+     - "Number of refinement iterations" increase it to 1 or 2 to do multiple pass on the keyframes (useful for loop closure)  
+     - "Maximum batch size" -> If you are using a small gpu or you have a lot of images, put 1 to limit the vram usage (IMPORTANT).  
 
-Modes:
-1 - for a simple video sequence, leave it at "sequence: linspace"  
-2 - for an unordered collection of images, change it to "unordered: retrieval"  
+3) select the inference algorithm:  
+  There are 4 Modes implemented. You'll have to select the mode that is most suited to your data:  
+> [!Note]
+>  If your images are unordered, then you **HAVE TO** select `unordered: retrieval` (only available with the --retrieval option). 
 
-both of these modes share the same parameters:  
+- 3.a. for an unordered collection of images, change it to "unordered: retrieval"  
+     - Select the Number of memory images (also called keyframes). For this one, I would say to put as many as possible but to not go above 300, the more images there are, the slower/more memory hungry it'll be.
+     - Leave "Render once" toggled OFF. You can toggle it ON if "Number of refinement iterations" > 0. 
+- 3.b. for a simple video sequence, you can select "sequence: linspace"
+     - Same parameters as 3.a.
+- 3.c. for a longer video sequence : "sequence: slam keyframes"  (selected by default).
+     - Default parameters should be good enough. You can increase subsample to 4 for slam at higher resolutions (>= 512)
+     - The online version is equivalent to "sequence: slam keyframes" with local_context=0.
+- 3.d. for a longer video sequence, if the KDTree/slam is too slow for you : "sequence: local context and linspace keyframes".
+    - You can also keep default parameters.
 
-Select the Number of memory images (I would say to put as many as possible but to not go above 300, the more images there are, the slower/more memory hungry it'll be)  
-Leave "Render once" toggled OFF. You can toggle it ON if "Number of refinement iterations" > 0  
-
-3 - for a longer video sequence : "sequence: slam keyframes"  
-4 - for a longer video sequence, if the KDTree/slam is too slow for you : "sequence: local context and linspace keyframes"  
-
-Default params should be good enough, may increase subsample for slam at higher resolutions.  
-The online version is equivalent to "sequence: slam keyframes" with local_context=0.  
-
-Hit "Run"  
+4) Hit "Run". Wait for the process the load all images and switch to the viser tab to see the reconstruction, or wait until the full reconstruction appears in gradio.
 
 ### Online Visual Odometry Demo (open3d)
 

@@ -287,7 +287,7 @@ def set_execution_mode(inputfiles, execution_mode, num_mem_images, render_once, 
 
     if execution_mode in ["linseq", "retrieval"]:
         current_num_mem_images = num_mem_images.constructor_args["value"] \
-            if num_mem_images.constructor_args["value"] > 0 else min(num_files, 2)
+            if num_mem_images.constructor_args["value"] > 0 else min(num_files, 50)
         current_num_mem_images = min(num_files, current_num_mem_images)
 
         num_mem_images = gradio.Slider(label="Number of memory images", value=current_num_mem_images,
@@ -364,7 +364,7 @@ def main_demo(tmpdirname, model, retrieval, device, image_size, server_name, ser
                                            label="Maximum batch size", visible=True)
                 with gradio.Column():
                     execution_mode = gradio.Dropdown(available_modes,
-                                                     value='linseq', label="Mode",
+                                                     value='vidslam', label="Mode",
                                                      info="Define how to run MUSt3R",
                                                      interactive=True)
 
