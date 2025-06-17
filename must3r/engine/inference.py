@@ -60,7 +60,7 @@ def split_list_of_tensors(tensor, max_bs):
 
 
 def stack_views(true_shape, values, max_bs=None):
-    # first figure out what the unique aspect ration are
+    # first figure out what the unique aspect ratios are
     unique_true_shape, inverse_indices = torch.unique(true_shape, dim=0, return_inverse=True)
 
     # we group the values that share the same AR
@@ -290,7 +290,7 @@ def inference_video_multi_ar(encoder, decoder, imgs, true_shape, mem_batches,
             new_labels = [int(v) for v in new_labels]
             mem = new_mem
             local_keyframes = []
-            if len(img_labels) == 0:  # at initialization, all keyframes (to simplify thing a bit)
+            if len(img_labels) == 0:  # at initialization, all keyframes (to simplify things a bit)
                 for j, img_id_i in enumerate(img_ids_i):
                     img_id_i = int(img_id_i)
                     img_labels[img_id_i] = new_labels[j]

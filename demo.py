@@ -37,7 +37,7 @@ if __name__ == '__main__':
     model = load_model(weights_path, encoder=args.encoder, decoder=args.decoder, device=args.device,
                        img_size=args.image_size, memory_mode=args.memory_mode, verbose=args.verbose)
 
-    # dust3r will write the 3D model inside tmpdirname
+    # must3r will write the 3D model inside tmpdirname
     with tempfile.TemporaryDirectory(suffix='dust3r_gradio_demo') as tmpdirname:
         if args.verbose:
             print('Outputing stuff in', tmpdirname)

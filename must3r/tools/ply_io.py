@@ -10,7 +10,6 @@ except ImportError:
 
 def ply_read(ply_file):
     filedata = PlyData.read(ply_file)
-
     # Recover points 3D coordinates and colors from ply file
     return elements2colorpoints(filedata)
 
@@ -146,9 +145,8 @@ def debugExportRays(rays, centers, name, interpols=20):
     print("outpoints: ", np.shape(outpoints))
     exportPointsPLY(outpoints, name)
 
+
 # Utils funcs
-
-
 def autoselfcolor(verts):
     return np.concatenate([verts, verts.clip(0, 1) * 255], axis=-1)
 
