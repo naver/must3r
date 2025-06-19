@@ -440,7 +440,7 @@ class CausalMUSt3R(MUSt3R):
             current_mem, current_mem_labels, mem_nimgs, mem_protected_imgs, mem_protected_tokens = current_mem
             x = x + self.image2_embed.to(current_dtype)  # not the reference image / memory
 
-        # protected tokens will not be droped out
+        # protected tokens will not be dropped out
         if not render:
             current_mem_protected_imgs = mem_protected_imgs
             mem_protected_imgs = min(self.protected_imgs, current_mem_protected_imgs + nimgs)
@@ -455,7 +455,7 @@ class CausalMUSt3R(MUSt3R):
         mem_not_sel = None
         active_mem = current_mem
         if not render and self.mem_dropout.p > 0.0:
-            # random token droput, efficient for training
+            # random token dropout, efficient for training
             mem_sel, mem_not_sel = self.mem_dropout(Nm, nimgs, N, protected=mem_protected_tokens, device=x.device)
         elif render and self.mem_dropout.p > 0.0 and self.dropout_mode == 'temporary':
             new_mem_tokens = 0
@@ -487,12 +487,12 @@ class CausalMUSt3R(MUSt3R):
             # when updating the memory, do not let an image do CA with its own tokens
             # ignore this rule when initializing from only one image
             if self.use_mem_mask:
-                # physically remove the self attenting memory tokens
+                # physically remove the self attending memory tokens
                 mem_mask = self.make_mem_mask(nimgs, N, Nm, x.device)
             # create mask for the cross attention
             attn_mask = self.make_attn_mask(x, B, nimgs, N, mem_nimgs, Nm, mem_not_sel, mem_labels, mem_mask)
 
-        new_mem = []  # output memory tokens before compression
+        new_mem = []
         for blk, current_mem_blk in zip(self.blocks_dec, active_mem):
             if not render:
                 # update the memory for this layer

@@ -1,6 +1,8 @@
 # Copyright (C) 2025-present Naver Corporation. All rights reserved.
 import numpy as np
 
+import must3r.tools.path_to_dust3r  # noqa
+from dust3r.utils.geometry import geotrf
 try:
     import viser
     import viser.transforms as viser_tf
@@ -15,6 +17,12 @@ def get_pointcloud_key(frame_id):
 
 def get_camera_key(frame_id):
     return f"/frames/t{frame_id}/frustum"
+
+
+def colorize_grayscale(depth: np.ndarray):
+    mind, maxd = depth.min(), depth.max()
+    depth = (depth - mind) / (maxd - mind + 1e-9)
+    return np.stack([depth, depth, depth], axis=-1)
 
 
 class ViserWrapper():
@@ -54,7 +62,10 @@ class ViserWrapper():
             "Confidence", min=1.0, max=10.0, step=0.1, initial_value=3.0
         )
         self.max_points_per_frame = self.server.gui.add_slider(
-            "Max Points", min=0, max=250_000, step=1000, initial_value=0
+            "Max Points", min=0, max=250_000, step=1000, initial_value=20_000
+        )
+        self.local_pointmap = self.server.gui.add_checkbox(
+            "Local pointmaps", initial_value=False
         )
         self.follow_cam = self.server.gui.add_checkbox(
             "Follow Cam", initial_value=False
@@ -63,8 +74,14 @@ class ViserWrapper():
             "Keyframes Only", initial_value=False
         )
         self.hide_images = self.server.gui.add_checkbox(
-            "Hide Images", initial_value=False
+            "Hide Images", initial_value=False, hint="Hide the images in the camera frustum in the scene"
         )
+        self.hide_images_gui = self.server.gui.add_checkbox(
+            "Hide Predictions", initial_value=False, hint="Hide the rgb,depth,conf images"
+        )
+        self.rgb = self.server.gui.add_image(np.array([]), "RGB", jpeg_quality=80, visible=False)
+        self.depth = self.server.gui.add_image(np.array([]), "Depth", jpeg_quality=80, visible=False)
+        self.conf = self.server.gui.add_image(np.array([]), "Confidence", jpeg_quality=80, visible=False)
 
         self.point_nodes: dict[str, viser.PointCloudHandle] = {}
         self.camera_nodes: dict[str, viser.CameraFrustumHandle] = {}
@@ -86,6 +103,11 @@ class ViserWrapper():
             for frame_id in list(self.point_nodes.keys()):
                 self.make_point_cloud(frame_id)
 
+        @self.local_pointmap.on_update
+        def _(_) -> None:
+            for frame_id in list(self.point_nodes.keys()):
+                self.make_point_cloud(frame_id)
+
         @self.follow_cam.on_update
         def _(_) -> None:
             self.reset_cam_visility()
@@ -99,10 +121,22 @@ class ViserWrapper():
             for frame_id in list(self.camera_nodes.keys()):
                 self.make_camera_frustum(frame_id)
 
+        @self.hide_images_gui.on_update
+        def _(_) -> None:
+            self.set_images_gui_visibility()
+
         @self.max_points_per_frame.on_update
         def _(_) -> None:
             for frame_id in list(self.point_nodes.keys()):
                 self.make_point_cloud(frame_id)
+
+    def set_images_gui_visibility(self):
+        if len(self.rgb.image) > 0:
+            self.rgb.visible = not self.hide_images_gui.value
+        if len(self.depth.image) > 0:
+            self.depth.visible = not self.hide_images_gui.value
+        if len(self.conf.image) > 0:
+            self.conf.visible = not self.hide_images_gui.value
 
     def reset_cam_visility(self):
         for frame_id in list(self.camera_nodes.keys()):
@@ -129,7 +163,8 @@ class ViserWrapper():
 
     def make_point_cloud(self, frame_id):
         mask = self.pointmaps[frame_id]['conf'] >= self.confidence_threshold.value
-        points = self.pointmaps[frame_id]['pts3d'][mask]
+        points = self.pointmaps[frame_id]['pts3d_local'] if self.local_pointmap.value else self.pointmaps[frame_id]['pts3d']
+        points = points[mask]
         colors = self.pointmaps[frame_id]['rgb'][mask]
         is_keyframe = self.pointmaps[frame_id]['is_keyframe']
 
@@ -183,8 +218,10 @@ class ViserWrapper():
                 is_keyframe_i = False
             else:
                 is_keyframe_i = is_keyframe[i]
+            c2w = pointmaps[i]['c2w'].cpu().numpy()
             self.pointmaps[frame_id] = {
                 'pts3d': pointmaps[i]['pts3d'].cpu().numpy().reshape(-1, 3),
+                'pts3d_local': geotrf(c2w, pointmaps[i]['pts3d_local'].cpu().numpy().reshape(-1, 3)),
                 'conf': pointmaps[i]['conf'].cpu().numpy().ravel(),
                 'rgb': img.reshape(-1, 3),
                 'is_keyframe': bool(is_keyframe_i)
@@ -192,7 +229,6 @@ class ViserWrapper():
             self.make_point_cloud(frame_id)
 
             focal = float(pointmaps[i]['focal'].cpu())
-            c2w = pointmaps[i]['c2w'].cpu().numpy()
             H, W = img.shape[:2]
             fov = 2 * np.arctan2(H / 2, focal)
             aspect = W / H
@@ -210,6 +246,11 @@ class ViserWrapper():
             self.progress_bar.value = int(100 * len(self.pointmaps) / self.num_imgs)
 
         # only do this for the last one, we guarantee that c2w has a value with the early exit check
+        self.set_images_gui_visibility()
+        if not self.hide_images_gui.value:
+            self.rgb.image = img
+            self.depth.image = colorize_grayscale(pointmaps[-1]['pts3d_local'].cpu().numpy()[..., 2])
+            self.conf.image = colorize_grayscale(pointmaps[-1]['conf'].cpu().numpy())
         if self.follow_cam.value:
             self.reset_cam_visility()
             self.camera_nodes[frame_id].visible = False

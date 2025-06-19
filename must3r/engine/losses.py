@@ -11,7 +11,7 @@ class Regr3D (Criterion, MultiLoss):
         super().__init__(criterion)
         self.loss_in_log = loss_in_log
         if norm_mode.startswith('?'):
-            # do no norm pts from metric scale datasets
+            # use the same scale factor as ground-truth for predictions in metric scale datasets
             self.norm_all = False
             self.norm_mode = norm_mode[1:]
         else:
