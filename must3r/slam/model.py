@@ -337,7 +337,7 @@ class SLAM_MUSt3R():
                  load_memory=None,
                  num_agents=1,
                  device='cuda:0',
-                 num_init_frames=1,
+                 num_init_frames=2,
                  ):
 
         self.agents = [MUSt3R_Agent(fixed_focal) for _ in range(num_agents)]

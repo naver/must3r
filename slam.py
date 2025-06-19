@@ -603,7 +603,7 @@ if __name__ == "__main__":
                         help="Focals may vary along sequence (e.g. zoom-in/out).")
 
     parser.add_argument('--force_first_keyframes', default=None, type=int)
-    parser.add_argument('--num_init_frames', default=1, type=int)
+    parser.add_argument('--num_init_frames', default=2, type=int)
 
     # GUI related opts
     parser.add_argument('--viz_conf', default=4., type=float, help="Conf threshold for pts3d vizu")
