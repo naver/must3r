@@ -567,14 +567,19 @@ def groupby_consecutive(data):
 
 
 def inference_encoder(encoder, imgs, true_shape_view, max_bs=None, requires_grad=False):
-    def encoder_blk(imgs):
+    def encoder_get_context():
+        return torch.no_grad() if not requires_grad \
+            else nullcontext()
+
+    with encoder_get_context():
+        # x, pos = encoder_blk(imgs)
         B, nimgs = imgs.shape[:2]
         if max_bs is None or B * nimgs <= max_bs:
             # encode all images (concat them in the batch dimension for efficiency)
-            x, pos = encoder(imgs.reshape(B * nimgs, *imgs.shape[2:]), true_shape_view)
+            x, pos = encoder(imgs.view(B * nimgs, *imgs.shape[2:]), true_shape_view)
         else:
             # can also do it slice by slice in case all images don't fit at once
-            imgs_view = imgs.reshape(B * nimgs, *imgs.shape[2:])
+            imgs_view = imgs.view(B * nimgs, *imgs.shape[2:])
             x, pos = [], []
             for imgs_view_slice, true_shape_slice in zip(torch.split(imgs_view, max_bs), torch.split(true_shape_view, max_bs)):
                 xi, posi = encoder(imgs_view_slice, true_shape_slice)
@@ -582,53 +587,7 @@ def inference_encoder(encoder, imgs, true_shape_view, max_bs=None, requires_grad
                 pos.append(posi)
             x = torch.concatenate(x)
             pos = torch.concatenate(pos)
-        return x.reshape(B, nimgs, *x.shape[1:]), pos.reshape(B, nimgs, *pos.shape[1:])
-
-    if isinstance(requires_grad, list):
-        nimgs = imgs.shape[1]
-        ranges = groupby_consecutive(requires_grad)
-        xl, posl = [], []
-
-        def encoder_blk_partial(s, e):
-            xp, posp = encoder_blk(imgs[:, s:e])
-            xl.append(xp)
-            posl.append(posp)
-
-        start = 0
-        for s, e in ranges:
-            if start < s:
-                with torch.no_grad():
-                    encoder_blk_partial(start, s)
-            encoder_blk_partial(s, e + 1)
-            start = e + 1
-        if start < nimgs:
-            with torch.no_grad():
-                encoder_blk_partial(start, nimgs)
-
-        x = torch.concatenate(xl, dim=1)
-        pos = torch.concatenate(posl, dim=1)
-    else:
-        def encoder_get_context():
-            return torch.no_grad() if not requires_grad \
-                else nullcontext()
-
-        with encoder_get_context():
-            # x, pos = encoder_blk(imgs)
-            B, nimgs = imgs.shape[:2]
-            if max_bs is None or B * nimgs <= max_bs:
-                # encode all images (concat them in the batch dimension for efficiency)
-                x, pos = encoder(imgs.view(B * nimgs, *imgs.shape[2:]), true_shape_view)
-            else:
-                # can also do it slice by slice in case all images don't fit at once
-                imgs_view = imgs.view(B * nimgs, *imgs.shape[2:])
-                x, pos = [], []
-                for imgs_view_slice, true_shape_slice in zip(torch.split(imgs_view, max_bs), torch.split(true_shape_view, max_bs)):
-                    xi, posi = encoder(imgs_view_slice, true_shape_slice)
-                    x.append(xi)
-                    pos.append(posi)
-                x = torch.concatenate(x)
-                pos = torch.concatenate(pos)
-            return x.view(B, nimgs, *x.shape[1:]), pos.view(B, nimgs, *pos.shape[1:])
+        return x.view(B, nimgs, *x.shape[1:]), pos.view(B, nimgs, *pos.shape[1:])
     return x, pos
 
 
