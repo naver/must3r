@@ -20,7 +20,7 @@
 
 ```
 Here's an example:
-MUSt3R_224_cvpr-C on TUM RGBD (--res 224 --subsamp 2 --keyframe_overlap_thr 0.05 --min_conf_keyframe 1.5 --overlap_percentile 85)
+MUSt3R_224_cvpr-C on TUM RGBD (--res 224 --subsamp 2 --keyframe_overlap_thr 0.05 --min_conf_keyframe 1.5 --overlap_percentile 85 --num_init_frames 1)
 
 before the fix
 Mean ALL RMSE= 25.9 cm
@@ -193,7 +193,7 @@ realestate_pnp_1by1
 ### TUM RGBD SLAM
 
 ```
---res 512 --subsamp 2 --keyframe_overlap_thr 0.05 --min_conf_keyframe 1.5 --overlap_percentile 85
+--res 512 --subsamp 2 --keyframe_overlap_thr 0.05 --min_conf_keyframe 1.5 --overlap_percentile 85 --num_init_frames 1
 ```
 
 #### Causal
@@ -600,7 +600,7 @@ Median scaling error: 15.03519%
 ### ETH3D SLAM
 
 ```
---res 512 --subsamp 2 --keyframe_overlap_thr 0.05 --min_conf_keyframe 1.5 --overlap_percentile 85
+--res 512 --subsamp 2 --keyframe_overlap_thr 0.05 --min_conf_keyframe 1.5 --overlap_percentile 85 --num_init_frames 1
 ```
 
 #### Causal
