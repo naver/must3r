@@ -6,6 +6,7 @@ import itertools
 from tqdm import tqdm
 import roma
 from collections import deque
+import math
 
 from must3r.model import ActivationType, apply_activation
 import must3r.tools.path_to_dust3r  # noqa
@@ -25,13 +26,14 @@ def postprocess(pointmaps, pointmaps_activation=ActivationType.NORM_EXP, compute
         out['conf'] = 1.0 + pointmaps[..., -1].exp()
 
     if compute_cam:
-        H, W = out['conf'].shape[-2:]
-        pp = torch.tensor((W / 2, H / 2), device=out['pts3d'].device)
-        focal = estimate_focal_knowing_depth(out['pts3d_local'], pp, focal_mode='weiszfeld')
-        out['focal'] = focal
-
         batch_dims = out['pts3d'].shape[:-3]
         num_batch_dims = len(batch_dims)
+        H, W = out['conf'].shape[-2:]
+        pp = torch.tensor((W / 2, H / 2), device=out['pts3d'].device)
+        focal = estimate_focal_knowing_depth(out['pts3d_local'].reshape(math.prod(batch_dims), H, W, 3), pp,
+                                             focal_mode='weiszfeld')
+        out['focal'] = focal.reshape(*batch_dims)
+
         R, T = roma.rigid_points_registration(
             out['pts3d_local'].reshape(*batch_dims, -1, 3),
             out['pts3d'].reshape(*batch_dims, -1, 3),
