@@ -41,7 +41,7 @@ Official implementation of `MUSt3R: Multi-view Network for Stereo 3D Reconstruct
 
 ## License
 MUSt3R is released under the MUSt3R Non-Commercial License. See [LICENSE](LICENSE) and [NOTICE](NOTICE) for more information.  
-A separate notice is available for the checkpoints. Make sure to check [CHECKPOINTS_NOTICE](CHECKPOINTS_NOTICE). The mapfree dataset in particular, which was used to train all models, has a very restrictive license.
+[NOTICE](NOTICE) also contains information about the datasets used to train the checkpoints. The mapfree dataset in particular, which was used to train all models, has a very restrictive license.
 
 ## Get Started
 
@@ -82,7 +82,7 @@ cd ../../../../
 ```
 
 ### Checkpoints
-We provide several pre-trained models. For these checkpoints, make sure to agree to the license of all the training datasets we used, in addition to [MUSt3R License](LICENSE). For more information, check [CHECKPOINTS_NOTICE](CHECKPOINTS_NOTICE).
+We provide several pre-trained models. For these checkpoints, make sure to agree to the license of all the training datasets we used, in addition to [MUSt3R License](LICENSE). For more information, check [NOTICE](NOTICE).
 
 | Modelname   | Training resolutions | Head | Encoder | Decoder |
 |-------------|----------------------|------|---------|---------|

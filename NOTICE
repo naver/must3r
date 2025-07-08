@@ -1,34 +1,140 @@
-MUSt3R
-Copyright 2025-present NAVER Corp.
+MUSt3R Notice of acknowledgements:
 
-This project contains subcomponents with separate copyright notices and license terms. 
-Your use of the source code for these subcomponents is subject to the terms and conditions of the following licenses.
+=================================
+SECTION 1: NAVER SPECIFIC NOTICES
+=================================
+
+Portions of the Materials may utilize following cited elements that are subject to separate copyright notices and the same license terms as the Materials.
+
+---------------------------------------------------------
+PART 1: SEE NOTICES BELOW WITH RESPECT TO SOFTWARE FILES:
+---------------------------------------------------------
+The following potions of the Materials are subject to the following copyright notice:
+(1.1.A) https://github.com/naver/croco: CroCo, Copyright (c) 2022-present Naver Corporation
+(1.1.B) https://github.com/naver/dust3r: DUSt3R, Copyright (c) 2024-present Naver Corporation
+(1.1.C) https://github.com/naver/mast3r: MASt3R, Copyright (c) 2024-present Naver Corporation
+
+------------------------------------------------------
+PART 2: SEE NOTICES BELOW WITH RESPECT TO MODEL FILES:
+------------------------------------------------------
+
+(1.2.A) Portions of the Materials include models derived from the following model: CroCo v2 Model: CroCo_V2_ViTLarge_BaseDecoder, 
+available here: https://github.com/naver/croco
+and subject to the following copyright notice: CroCo, Copyright (c) 2022-present Naver Corporation
+
+The following datasets, which are not being distributed with the Materials, are available under the following terms and conditions, which as applicable also apply to the use of checkpoints distributed with the Materials that are trained using the CroCo v2 Model (i.e., any use of checkpoints derived from such datasets are subject, as applicable, to any additional terms and conditions of the corresponding dataset license in addition to the terms and conditions of the License to the Materials):
+https://github.com/naver/croco/NOTICE_CHECKPOINTS
+
+=====================================
+SECTION 2: NON-NAVER SPECIFIC NOTICES
+=====================================
+
+Portions of the Materials may utilize following cited elements that are subject to separate copyright notices and license terms, the use of which is hereby acknowledged:
 
 ---------------------------------------------------------
 PART 1: SEE NOTICES BELOW WITH RESPECT TO SOFTWARE FILES:
 ---------------------------------------------------------
 
-- naver/dust3r
-   CC BY-NC-SA 4.0 license, https://github.com/naver/dust3r/blob/main/LICENSE
+Portions of the Materials listed in this PART 1 that include modified and/or unmodified elements from pre-existing software are distributed under the same terms and conditions as those under which such pre-existing software is made available.
 
-- naver/croco
-   CC BY-NC-SA 4.0 license, https://github.com/naver/croco/blob/master/LICENSE
+(2.1.1) SOFTWARE MATERIALS DISTRIBUTED HERE: 
+must3r/retrieval/model.py
 
-- gtolias/how
-   MIT license, https://github.com/gtolias/how/blob/master/LICENSE
+INCLUDE MODIFIED AND/OR UNMODIFIED ELEMENTS FROM PRE-EXISTING SOFTWARE AVAILABLE HERE:
+https://github.com/gtolias/how/
 
-- naver/mast3r
-   CC BY-NC-SA 4.0 license, https://github.com/naver/mast3r/blob/main/LICENSE
+WHICH PRE-EXISTING SOFTWARE IS MADE AVAILABLE UNDER THE TERMS AND CONDITIONS HERE (MIT License):
+https://github.com/gtolias/how/blob/master/LICENSE
+Copyright (c) 2020 Giorgos Tolias, Tomas Jenicek
 
-- isl-org/Open3D 
-   MIT license, https://github.com/isl-org/Open3D/blob/main/LICENSE
 
--------------------------------------------------
-PART 2: SEE NOTICES BELOW WITH RESPECT TO MODELS:
--------------------------------------------------
+(2.1.2) SOFTWARE MATERIALS DISTRIBUTED HERE: 
+slam.py
 
-The models were derrived from the following model:
-CroCo v2: CroCo_V2_ViTLarge_BaseDecoder, https://github.com/naver/croco
-The list of training datasets and their respective license can be found in https://github.com/naver/must3r/CHECKPOINTS_NOTICE
+INCLUDE MODIFIED AND/OR UNMODIFIED ELEMENTS FROM PRE-EXISTING SOFTWARE AVAILABLE HERE:
+https://github.com/isl-org/Open3D
 
-Any use of our models are subject, as applicable, to any additional terms and conditions of the corresponding model/dataset license in addition to the terms and conditions of the License to the Materials.
+WHICH PRE-EXISTING SOFTWARE IS MADE AVAILABLE UNDER THE TERMS AND CONDITIONS HERE (MIT License):
+https://github.com/isl-org/Open3D/blob/main/LICENSE
+Open3D: www.open3d.org
+Copyright (c) 2018-2023 www.open3d.org
+
+(2.1.3) https://github.com/NVlabs/SegFormer software was used for pre-processing some of the datasets referenced in PART 2 below, which software is made available under the following license (NVIDIA Source Code License for SegFormer): 
+https://github.com/NVlabs/SegFormer/blob/master/LICENSE
+
+
+------------------------------------------------------
+PART 2: SEE NOTICES BELOW WITH RESPECT TO MODEL FILES:
+------------------------------------------------------
+
+Portions of the Materials include models derived from the following model(s) that are available under the following terms, which as applicable also apply to the use of models distributed with the Materials (i.e., any use of derived models derived, as applicable, to any additional terms and conditions of the corresponding model license in addition to the terms and conditions of the License to the Materials):
+
+N/A
+
+
+-----------------------------------------------------
+PART 3: SEE NOTICES BELOW WITH RESPECT TO DATA FILES:
+-----------------------------------------------------
+The datasets listed in this PART 3, which are not being distributed with the Materials, are available under the following terms, which as applicable also apply to the use of checkpoints distributed with the Materials that are trained using such datasets (i.e., any use of checkpoints derived from such datasets are subject, as applicable, to any additional terms and conditions of the corresponding dataset license in addition to the terms and conditions of the License to the Materials):
+
+Summary:
+See (3.2.A) below: CO3Dv2 (https://github.com/facebookresearch/co3d);
+See (3.2.B) below: ScanNet++ (http://www.scan-net.org/);
+See (3.2.C) below: BlendedMVS (https://github.com/YoYo000/BlendedMVS);
+See (3.2.D) below: StaticThings3D [a static version of the synthetic FlyingThings3D dataset] (https://lmb.informatik.uni-freiburg.de/resources/datasets/SceneFlowDatasets.en.html)
+See (3.2.E) below: WildRGB-D (https://github.com/wildrgbd/wildrgbd)
+See (3.2.F) below: TartanAir (https://theairlab.org/tartanair-dataset/)
+See (3.2.G) below: UnrealStereo4K (https://github.com/fabiotosi92/SMD-Nets?tab=readme-ov-file#unrealstereo4k)
+See (3.2.H) below: Virtual KITTI 2 (https://europe.naverlabs.com/proxy-virtual-worlds-vkitti-2/)
+See (3.2.I) below: DL3DV (https://dl3dv-10k.github.io/DL3DV-10K/)
+See (3.2.J) below: Niantic Map Free Relocalization Dataset (https://research.nianticlabs.com/mapfree-reloc-benchmark/dataset)
+See (3.2.K) below: Infinigen (https://github.com/princeton-vl/infinigen/blob/main/docs/PreGeneratedData.md)
+See (3.2.L) below: Hypersim (https://github.com/apple/ml-hypersim)
+
+
+(3.2.A) CO3Dv2, is made available under the following license (CC BY NC 4.0): 
+https://github.com/facebookresearch/co3d/blob/main/LICENSE
+
+(3.2.B) ScanNet++, is made available under the following license (ScanNet):
+https://kaldir.vc.in.tum.de/scannetpp/static/scannetpp-terms-of-use.pdf
+
+(3.2.C) BlendedMVS, is made available under the following license (CC BY 4.0): 
+https://github.com/YoYo000/BlendedMVS
+
+(3.2.D) StaticThings3D, is made available under the following license (research purposes only): 
+https://lmb.informatik.uni-freiburg.de/resources/datasets/SceneFlowDatasets.en.html
+
+(3.2.E) WildRGB-D, is made available under the following license (MIT): 
+https://github.com/wildrgbd/wildrgbd/blob/main/LICENSE
+
+(3.2.F) TartanAir, is made available under the following license (CC BY 4.0): 
+https://theairlab.org/tartanair-dataset/
+
+(3.2.G) UnrealStereo4K, is made available under the following license (MIT):
+https://github.com/fabiotosi92/SMD-Nets/blob/main/LICENSE
+
+(3.2.H) Virtual KITTI 2, is made available under the following license (CC BY NC SA 3.0): 
+https://europe.naverlabs.com/proxy-virtual-worlds-vkitti-2/
+
+(3.2.I) DL3DV, is made available under the following license (CC BY NC 4.0):
+https://github.com/DL3DV-10K/Dataset/blob/main/License.md
+
+(3.2.J) Niantic Map Free Relocalization Dataset, is made available under the following license (non-commercial purposes): 
+https://research.nianticlabs.com/mapfree-reloc-benchmark/dataset
+
+(3.2.K) Infinigen, is made available under the following license (BSD 3-Clause): 
+https://github.com/princeton-vl/infinigen/blob/main/LICENSE
+
+(3.2.L) Hypersim, is made available under the following license (CC BY SA 3.0): 
+https://github.com/apple/ml-hypersim/?tab=readme-ov-file#the-hypersim-dataset
+
+
+-----------------------------------------------------------
+PART 4: SEE NOTICES BELOW WITH RESPECT TO CHECKPOINT FILES:
+-----------------------------------------------------------
+
+Checkpoints distributed herewith have been trained using the data files listed in PART 3 except:
+MUSt3R_224_cvpr.pth and MUSt3R_512_cvpr.pth were not trained using PART 3 (3.2.K) and (3.2.L) data files.
+
+
+
