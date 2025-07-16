@@ -79,7 +79,7 @@ The datasets listed in this PART 3, which are not being distributed with the Mat
 
 Summary:
 See (3.2.A) below: CO3Dv2 (https://github.com/facebookresearch/co3d);
-See (3.2.B) below: ScanNet++ (http://www.scan-net.org/);
+See (3.2.B) below: ScanNet++ (https://kaldir.vc.in.tum.de/scannetpp/);
 See (3.2.C) below: BlendedMVS (https://github.com/YoYo000/BlendedMVS);
 See (3.2.D) below: StaticThings3D [a static version of the synthetic FlyingThings3D dataset] (https://lmb.informatik.uni-freiburg.de/resources/datasets/SceneFlowDatasets.en.html)
 See (3.2.E) below: WildRGB-D (https://github.com/wildrgbd/wildrgbd)
