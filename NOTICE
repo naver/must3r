@@ -78,54 +78,54 @@ PART 3: SEE NOTICES BELOW WITH RESPECT TO DATA FILES:
 The datasets listed in this PART 3, which are not being distributed with the Materials, are available under the following terms, which as applicable also apply to the use of checkpoints distributed with the Materials that are trained using such datasets (i.e., any use of checkpoints derived from such datasets are subject, as applicable, to any additional terms and conditions of the corresponding dataset license in addition to the terms and conditions of the License to the Materials):
 
 Summary:
-See (3.2.A) below: CO3Dv2 (https://github.com/facebookresearch/co3d);
-See (3.2.B) below: ScanNet++ (https://kaldir.vc.in.tum.de/scannetpp/);
-See (3.2.C) below: BlendedMVS (https://github.com/YoYo000/BlendedMVS);
-See (3.2.D) below: StaticThings3D [a static version of the synthetic FlyingThings3D dataset] (https://lmb.informatik.uni-freiburg.de/resources/datasets/SceneFlowDatasets.en.html)
-See (3.2.E) below: WildRGB-D (https://github.com/wildrgbd/wildrgbd)
-See (3.2.F) below: TartanAir (https://theairlab.org/tartanair-dataset/)
-See (3.2.G) below: UnrealStereo4K (https://github.com/fabiotosi92/SMD-Nets?tab=readme-ov-file#unrealstereo4k)
-See (3.2.H) below: Virtual KITTI 2 (https://europe.naverlabs.com/proxy-virtual-worlds-vkitti-2/)
-See (3.2.I) below: DL3DV (https://dl3dv-10k.github.io/DL3DV-10K/)
-See (3.2.J) below: Niantic Map Free Relocalization Dataset (https://research.nianticlabs.com/mapfree-reloc-benchmark/dataset)
-See (3.2.K) below: Infinigen (https://github.com/princeton-vl/infinigen/blob/main/docs/PreGeneratedData.md)
-See (3.2.L) below: Hypersim (https://github.com/apple/ml-hypersim)
+See (2.3.A) below: CO3Dv2 (https://github.com/facebookresearch/co3d);
+See (2.3.B) below: ScanNet++ (https://kaldir.vc.in.tum.de/scannetpp/);
+See (2.3.C) below: BlendedMVS (https://github.com/YoYo000/BlendedMVS);
+See (2.3.D) below: StaticThings3D [a static version of the synthetic FlyingThings3D dataset] (https://lmb.informatik.uni-freiburg.de/resources/datasets/SceneFlowDatasets.en.html)
+See (2.3.E) below: WildRGB-D (https://github.com/wildrgbd/wildrgbd)
+See (2.3.F) below: TartanAir (https://theairlab.org/tartanair-dataset/)
+See (2.3.G) below: UnrealStereo4K (https://github.com/fabiotosi92/SMD-Nets?tab=readme-ov-file#unrealstereo4k)
+See (2.3.H) below: Virtual KITTI 2 (https://europe.naverlabs.com/proxy-virtual-worlds-vkitti-2/)
+See (2.3.I) below: DL3DV (https://dl3dv-10k.github.io/DL3DV-10K/)
+See (2.3.J) below: Niantic Map Free Relocalization Dataset (https://research.nianticlabs.com/mapfree-reloc-benchmark/dataset)
+See (2.3.K) below: Infinigen (https://github.com/princeton-vl/infinigen/blob/main/docs/PreGeneratedData.md)
+See (2.3.L) below: Hypersim (https://github.com/apple/ml-hypersim)
 
 
-(3.2.A) CO3Dv2, is made available under the following license (CC BY NC 4.0): 
+(2.3.A) CO3Dv2, is made available under the following license (CC BY NC 4.0): 
 https://github.com/facebookresearch/co3d/blob/main/LICENSE
 
-(3.2.B) ScanNet++, is made available under the following license (ScanNet):
+(2.3.B) ScanNet++, is made available under the following license (ScanNet++ Terms of Use):
 https://kaldir.vc.in.tum.de/scannetpp/static/scannetpp-terms-of-use.pdf
 
-(3.2.C) BlendedMVS, is made available under the following license (CC BY 4.0): 
+(2.3.C) BlendedMVS, is made available under the following license (CC BY 4.0): 
 https://github.com/YoYo000/BlendedMVS
 
-(3.2.D) StaticThings3D, is made available under the following license (research purposes only): 
+(2.3.D) StaticThings3D, is made available under the following license (research purposes only): 
 https://lmb.informatik.uni-freiburg.de/resources/datasets/SceneFlowDatasets.en.html
 
-(3.2.E) WildRGB-D, is made available under the following license (MIT): 
+(2.3.E) WildRGB-D, is made available under the following license (MIT): 
 https://github.com/wildrgbd/wildrgbd/blob/main/LICENSE
 
-(3.2.F) TartanAir, is made available under the following license (CC BY 4.0): 
+(2.3.F) TartanAir, is made available under the following license (CC BY 4.0): 
 https://theairlab.org/tartanair-dataset/
 
-(3.2.G) UnrealStereo4K, is made available under the following license (MIT):
+(2.3.G) UnrealStereo4K, is made available under the following license (MIT):
 https://github.com/fabiotosi92/SMD-Nets/blob/main/LICENSE
 
-(3.2.H) Virtual KITTI 2, is made available under the following license (CC BY NC SA 3.0): 
+(2.3.H) Virtual KITTI 2, is made available under the following license (CC BY NC SA 3.0): 
 https://europe.naverlabs.com/proxy-virtual-worlds-vkitti-2/
 
-(3.2.I) DL3DV, is made available under the following license (CC BY NC 4.0):
+(2.3.I) DL3DV, is made available under the following license (CC BY NC 4.0):
 https://github.com/DL3DV-10K/Dataset/blob/main/License.md
 
-(3.2.J) Niantic Map Free Relocalization Dataset, is made available under the following license (non-commercial purposes): 
+(2.3.J) Niantic Map Free Relocalization Dataset, is made available under the following license (non-commercial purposes): 
 https://research.nianticlabs.com/mapfree-reloc-benchmark/dataset
 
-(3.2.K) Infinigen, is made available under the following license (BSD 3-Clause): 
+(2.3.K) Infinigen, is made available under the following license (BSD 3-Clause): 
 https://github.com/princeton-vl/infinigen/blob/main/LICENSE
 
-(3.2.L) Hypersim, is made available under the following license (CC BY SA 3.0): 
+(2.3.L) Hypersim, is made available under the following license (CC BY SA 3.0): 
 https://github.com/apple/ml-hypersim/?tab=readme-ov-file#the-hypersim-dataset
 
 
@@ -134,7 +134,7 @@ PART 4: SEE NOTICES BELOW WITH RESPECT TO CHECKPOINT FILES:
 -----------------------------------------------------------
 
 Checkpoints distributed herewith have been trained using the data files listed in PART 3 except:
-MUSt3R_224_cvpr.pth and MUSt3R_512_cvpr.pth were not trained using PART 3 (3.2.K) and (3.2.L) data files.
+MUSt3R_224_cvpr.pth and MUSt3R_512_cvpr.pth were not trained using PART 3 (2.3.K) and (2.3.L) data files.
 
 
 
