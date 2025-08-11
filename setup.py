@@ -35,7 +35,8 @@ setup(
         'open3d',
         'viser',
         'croco @ git+https://github.com/naver/croco.git@croco_module#egg=croco',
-        'dust3r @ git+https://github.com/naver/dust3r.git@dust3r_setup#egg=dust3r'
+        'dust3r @ git+https://github.com/naver/dust3r.git@dust3r_setup#egg=dust3r',
+        "asmk[cpu] @ git+https://github.com/lojzezust/asmk.git"
     ],
     python_requires=">=3.11",
     extras_require={
