@@ -51,7 +51,7 @@ def get_args_parser():
     parser.add_argument("--server_port", type=int, help=("will start gradio app on this port (if available). "
                                                          "If None, will search for an available port starting at 7860."),
                         default=None)
-    parser.add_argument("--weights", type=str, help="path to the model weights", default=None)
+    parser.add_argument("--weights", type=str, help="path to the model weights", required=True)
 
     parser.add_argument("--encoder", type=str, default=None, help="encoder class instantiation")
     parser.add_argument("--decoder", type=str, default=None, help="decoder class instantiation")

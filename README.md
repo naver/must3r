@@ -49,10 +49,28 @@ MUSt3R extends the DUSt3R architecture through several modifications: making it 
 
 ### Installation
 
+#### using setup.py
 ```bash
 micromamba create -n must3r python=3.11 cmake=3.14.0
 micromamba activate must3r 
 pip3 install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126 # use the correct version of cuda for your system
+
+# (recommended) if you can, install xFormers for memory-efficient attention
+pip3 install -U xformers==0.0.30 --index-url https://download.pytorch.org/whl/cu126
+pip3 install must3r@git+https://github.com/naver/must3r.git
+# pip3 install must3r[optional]@git+https://github.com/naver/must3r.git # adds pillow-heif
+# pip3 install must3r[curope]@git+https://github.com/naver/must3r.git # adds curope
+# pip3 install must3r[all]@git+https://github.com/naver/must3r.git # adds all optional dependencies
+```
+
+#### development (no installation)
+
+```bash
+micromamba create -n must3r python=3.11 cmake=3.14.0
+micromamba activate must3r 
+pip3 install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url https://download.pytorch.org/whl/cu126 # use the correct version of cuda for your system
+
+# (recommended) if you can, install xFormers for memory-efficient attention
 pip3 install -U xformers==0.0.30 --index-url https://download.pytorch.org/whl/cu126
 
 git clone --recursive https://github.com/naver/must3r.git
@@ -76,7 +94,7 @@ pip install .
 cd ../..
 
 # Optional step: MUST3R relies on RoPE positional embeddings for which you can compile some cuda kernels for faster runtime.
-cd dust3r/croco/models/curope/
+cd dust3r/croco/curope/
 pip install .
 cd ../../../../
 ```
@@ -118,6 +136,9 @@ f7c133906bcfd4fe6ee157a9ffa85a23  MUSt3R_512_retrieval_trainingfree.pth
 ### Offline Gradio (+viser) Demo
 
 By default, `demo.py` will open a gradio instance on localhost:7860. If you launch the demo with `--viser`, it will also lauch a viser instance on localhost:8080. Load the images with gradio, hit run and visualize the reconstruction as it's being made in the viser tab.
+
+> [!NOTE]
+> `demo.py` is installed as `must3r_demo` (or `must3r_demo.exe`) when must3r is installed to `site-packages`. 
 
 ```bash
 python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512_retrieval_trainingfree.pth --image_size 512 --viser
@@ -169,6 +190,9 @@ python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512
 4) Hit "Run". Wait for the process the load all images and switch to the viser tab to see the reconstruction, or wait until the full reconstruction appears in gradio.
 
 ### Online Visual Odometry Demo (open3d)
+
+> [!NOTE]
+> `slam.py` is installed as `must3r_slam` (or `must3r_slam.exe`) when must3r is installed to `site-packages`. 
 
 ```bash
 # examples
