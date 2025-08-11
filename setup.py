@@ -32,7 +32,6 @@ setup(
         'huggingface-hub[torch]>=0.22',
         'cython',
         'pyaml',
-        'xformers',
         'open3d',
         'viser',
         'croco @ git+https://github.com/naver/croco.git@croco_module#egg=croco',
