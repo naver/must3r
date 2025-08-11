@@ -1,7 +1,7 @@
 # Copyright (C) 2025-present Naver Corporation. All rights reserved.
 import must3r.tools.path_to_dust3r  # noqa
 import dust3r.utils.path_to_croco  # noqa
-from models.pos_embed import RoPE2D  # noqa
+from croco.models.pos_embed import RoPE2D  # noqa
 
 
 def get_pos_embed(pos_embed_name):

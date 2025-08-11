@@ -4,7 +4,7 @@ from pathlib import Path
 
 import must3r.tools.path_to_dust3r  # noqa
 import dust3r.utils.path_to_croco  # noqa
-from utils.misc import save_on_master
+from croco.utils.misc import save_on_master
 
 
 def save_model(args, epoch, encoder, decoder, optimizer, loss_scaler, fname=None):

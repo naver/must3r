@@ -5,7 +5,7 @@ from typing import Optional, List, Callable
 
 import must3r.tools.path_to_dust3r  # noqa
 import dust3r.utils.path_to_croco  # noqa
-from models.blocks import Mlp
+from croco.models.blocks import Mlp
 
 
 def create_feedback_layers(embed_dim, depth, feedback_type):

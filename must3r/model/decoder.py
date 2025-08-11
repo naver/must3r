@@ -540,7 +540,7 @@ if __name__ == '__main__':
     from must3r.model.encoder import Dust3rEncoder
     import must3r.tools.path_to_dust3r  # noqa
     import dust3r.utils.path_to_croco  # noqa
-    from models.blocks import PositionGetter
+    from croco.models.blocks import PositionGetter
     toggle_memory_efficient_attention(enabled=True)
 
     enc = Dust3rEncoder(img_size=(224, 224), patch_embed='PatchEmbedDust3R').to('cuda')
