@@ -14,5 +14,8 @@ if path.isdir(DUSt3R_LIB_PATH):
     # workaround for sibling import
     sys.path.insert(0, DUSt3R_REPO_PATH)
 else:
-    raise ImportError(f"dust3r is not initialized, could not find: {DUSt3R_LIB_PATH}.\n "
-                      "Did you forget to run 'git submodule update --init --recursive' ?")
+    try:
+        from dust3r.utils.geometry import geotrf  # check if dust3r is installed as a module
+    except ImportError as e:
+        raise ImportError(f"dust3r is not initialized, could not find: {DUSt3R_LIB_PATH}.\n "
+                        "Did you forget to run 'git submodule update --init --recursive' ?")

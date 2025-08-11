@@ -4,7 +4,7 @@ import torch.nn as nn
 from must3r.model.blocks.attention import Attention, CachedCrossAttention
 import must3r.tools.path_to_dust3r  # noqa
 import dust3r.utils.path_to_croco  # noqa
-from models.blocks import Mlp, DropPath
+from croco.models.blocks import Mlp, DropPath
 
 MEMORY_MODES = ['norm_y', 'kv', 'raw']
 

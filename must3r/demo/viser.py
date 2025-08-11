@@ -65,13 +65,13 @@ class ViserWrapper():
             "Max Points", min=0, max=250_000, step=1000, initial_value=20_000
         )
         self.local_pointmap = self.server.gui.add_checkbox(
-            "Local pointmaps", initial_value=False
+            "Local pointmaps", initial_value=True
         )
         self.follow_cam = self.server.gui.add_checkbox(
             "Follow Cam", initial_value=False
         )
         self.keyframes_only = self.server.gui.add_checkbox(
-            "Keyframes Only", initial_value=False
+            "Keyframes Only", initial_value=True
         )
         self.hide_images = self.server.gui.add_checkbox(
             "Hide Images", initial_value=False, hint="Hide the images in the camera frustum in the scene"
@@ -79,9 +79,11 @@ class ViserWrapper():
         self.hide_images_gui = self.server.gui.add_checkbox(
             "Hide Predictions", initial_value=False, hint="Hide the rgb,depth,conf images"
         )
-        self.rgb = self.server.gui.add_image(np.array([[0]]), "RGB", jpeg_quality=80, visible=False)
-        self.depth = self.server.gui.add_image(np.array([[0]]), "Depth", jpeg_quality=80, visible=False)
-        self.conf = self.server.gui.add_image(np.array([[0]]), "Confidence", jpeg_quality=80, visible=False)
+
+        empty_img = np.array([[[0, 0, 0]]])
+        self.rgb = self.server.gui.add_image(empty_img, label="RGB", jpeg_quality=80, visible=False)
+        self.depth = self.server.gui.add_image(empty_img, label="Depth", jpeg_quality=80, visible=False)
+        self.conf = self.server.gui.add_image(empty_img, label="Confidence", jpeg_quality=80, visible=False)
 
         self.point_nodes: dict[str, viser.PointCloudHandle] = {}
         self.camera_nodes: dict[str, viser.CameraFrustumHandle] = {}

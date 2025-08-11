@@ -26,9 +26,9 @@ import must3r.engine.io as checkpoints
 
 import must3r.tools.path_to_dust3r  # noqa
 import dust3r.utils.path_to_croco  # noqa: F401
-from utils.misc import NativeScalerWithGradNormCount as NativeScaler  # noqa
-import utils.misc as dist
-from utils.misc import MetricLogger, SmoothedValue
+from croco.utils.misc import NativeScalerWithGradNormCount as NativeScaler  # noqa
+import croco.utils.misc as dist
+from croco.utils.misc import MetricLogger, SmoothedValue
 
 
 def get_args_parser():
