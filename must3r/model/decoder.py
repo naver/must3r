@@ -155,7 +155,7 @@ class MUSt3R(BaseTransformer):
             x = x.view(B, nimgs, *x.shape[1:])
         return x
 
-    def forward_list(self, x, pos, true_shape, current_mem=None, render=False):
+    def forward_list(self, x, pos, true_shape, current_mem=None, render=False, return_feats=False):
         # forward_list is called at inference when dealing with multiple aspect ratios or limited batch size
         x = x.copy()  # to be able to make views without changing the parent list
         pos = pos.copy()
@@ -255,10 +255,16 @@ class MUSt3R(BaseTransformer):
         # apply prediction head
         for i in range(len(x)):
             x[i] = self._compute_prediction_head(true_shape[i], B, nimgs[i], feats[i])
-        # return memory, pointmaps
-        return out, x
+        if return_feats:
+            # return memory, pointmaps, feats
+            feats = [[feats[i][j].view(B, nimgs[i], *feats[i][j].shape[1:]) for j in range(len(feats[i]))]
+                     for i in range(len(feats))]
+            return out, x, feats
+        else:
+            # return memory, pointmaps
+            return out, x
 
-    def forward(self, x, pos, true_shape, current_mem=None, render=False):
+    def forward(self, x, pos, true_shape, current_mem=None, render=False, return_feats=False):
         if isinstance(x, list):
             # multiple ar in this batch
             return self.forward_list(x, pos, true_shape, current_mem, render)
@@ -334,8 +340,14 @@ class MUSt3R(BaseTransformer):
 
         # apply prediction head
         x = self._compute_prediction_head(true_shape, B, nimgs, feats)
-        # return memory, pointmaps
-        return out, x
+
+        if return_feats:
+            # return memory, pointmaps, feats
+            feats = [feats[i].view(B, nimgs, *feats[i].shape[1:]) for i in range(len(feats))]
+            return out, x, feats
+        else:
+            # return memory, pointmaps
+            return out, x
 
 
 class CausalMUSt3R(MUSt3R):
@@ -420,7 +432,7 @@ class CausalMUSt3R(MUSt3R):
             attn_mask = attn_mask_float
         return attn_mask
 
-    def forward(self, x, pos, true_shape, current_mem=None, render=False):
+    def forward(self, x, pos, true_shape, current_mem=None, render=False, return_feats=False):
         current_dtype = get_current_dtype(x.dtype)
         # project encoder features to the correct dimension
         B, nimgs, N, Denc = x.shape
@@ -531,8 +543,14 @@ class CausalMUSt3R(MUSt3R):
 
         # apply prediction head
         x = self._compute_prediction_head(true_shape, B, nimgs, feats)
-        # return memory, pointmaps
-        return out, x
+
+        if return_feats:
+            # return memory, pointmaps, feats
+            feats = [feats[i].view(B, nimgs, *feats[i].shape[1:]) for i in range(len(feats))]
+            return out, x, feats
+        else:
+            # return memory, pointmaps
+            return out, x
 
 
 if __name__ == '__main__':
