@@ -167,7 +167,7 @@ def encoder_multi_ar(encoder, imgs, true_shape, verbose=False, max_bs=None, devi
 @torch.no_grad()
 def inference_multi_ar_batch(encoder, decoder, imgs, true_shape, mem=None, verbose=False,
                              encoder_precomputed_features=None,
-                             preserve_gpu_mem=False, post_process_function=None, device=None,
+                             preserve_gpu_mem=False, post_process_function=lambda x: {'pts3d': x}, device=None,
                              render=False, viser_server=None):
     device = device or true_shape.device
     outdevice = device if not preserve_gpu_mem else "cpu"
@@ -230,12 +230,10 @@ def _update_in_mem(old_values, new_values, old_labels, new_labels, old_idx, new_
 @torch.no_grad()
 def inference_video_multi_ar(encoder, decoder, imgs, true_shape, mem_batches,
                              verbose=False, max_bs=None, encoder_precomputed_features=None,
-                             preserve_gpu_mem=False, post_process_function=None, device=None, return_mem=False,
-                             viser_server=None, num_refinements_iterations=0,
-                             local_context_size=25,
+                             preserve_gpu_mem=False, post_process_function=lambda x: {'pts3d': x}, device=None,
+                             return_mem=False, viser_server=None, num_refinements_iterations=0, local_context_size=25,
                              is_keyframe_function=lambda id, res, scene_state: (id % 3 == 0),
-                             scene_state=None,
-                             scene_state_update_function=lambda res, scene_state: scene_state):
+                             scene_state=None, scene_state_update_function=lambda res, scene_state: scene_state):
     true_shape = torch.stack(true_shape, dim=0)
     nimgs = true_shape.shape[0]
     device = device or true_shape.device
@@ -370,8 +368,8 @@ def inference_video_multi_ar(encoder, decoder, imgs, true_shape, mem_batches,
 @torch.no_grad()
 def inference_multi_ar(encoder, decoder, imgs, img_ids, true_shape, mem_batches,
                        verbose=False, max_bs=None, to_render=None, encoder_precomputed_features=None,
-                       precomputed_mem=None, preserve_gpu_mem=False, post_process_function=None, device=None,
-                       return_mem=False, viser_server=None, num_refinements_iterations=0):
+                       precomputed_mem=None, preserve_gpu_mem=False, post_process_function=lambda x: {'pts3d': x},
+                       device=None, return_mem=False, viser_server=None, num_refinements_iterations=0):
     true_shape = torch.stack(true_shape, dim=0)
     nimgs = true_shape.shape[0]
     device = device or true_shape.device
