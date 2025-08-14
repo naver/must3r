@@ -8,7 +8,7 @@ from must3r.retrieval.processor import Retriever
 from must3r.retrieval.graph import farthest_point_sampling
 
 from must3r.engine.inference import encoder_multi_ar, inference_multi_ar, postprocess, inference_video_multi_ar
-from must3r.model import get_pointmaps_activation
+from must3r.model import get_pointmaps_activation, get_dtype
 from must3r.tools.image import get_resize_function
 
 import must3r.tools.path_to_dust3r  # noqa
@@ -109,14 +109,7 @@ def slam_update_scene_state(subsample, min_conf_keyframe, res, scene_state):
 def must3r_inference(model, retrieval, device, image_size, amp,
                      filelist, num_mem_images, max_bs, init_num_images, batch_num_views, render_once,
                      is_sequence, viser_server=None, num_refinements_iterations=0, verbose=True):
-    if amp == "fp16":
-        dtype = torch.float16
-    elif amp == "bf16":
-        assert torch.cuda.is_bf16_supported()
-        dtype = torch.bfloat16
-    else:
-        assert not amp
-        dtype = torch.float32
+    dtype = get_dtype(amp)
 
     max_bs = None if max_bs == 0 else max_bs
     encoder, decoder = model
@@ -255,14 +248,7 @@ def must3r_inference_video(model, device, image_size, amp,
                            scene_state=None,
                            scene_state_update_function=lambda res, scene_state: scene_state,
                            verbose=True):
-    if amp == "fp16":
-        dtype = torch.float16
-    elif amp == "bf16":
-        assert torch.cuda.is_bf16_supported()
-        dtype = torch.bfloat16
-    else:
-        assert not amp
-        dtype = torch.float32
+    dtype = get_dtype(amp)
 
     max_bs = None if max_bs == 0 else max_bs
     encoder, decoder = model

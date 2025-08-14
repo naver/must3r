@@ -382,14 +382,6 @@ def save_final_model(args, epoch, encoder, decoder):
     dist.save_on_master(to_save, checkpoint_path)
 
 
-def get_dtype(args):
-    if args.amp:
-        dtype = torch.bfloat16 if args.amp == 'bf16' else torch.float16
-    else:
-        dtype = torch.float32
-    return dtype
-
-
 def train_one_epoch(encoder: torch.nn.Module, decoder: torch.nn.Module,
                     criterion: torch.nn.Module,
                     data_loader: Sized, optimizer: torch.optim.Optimizer,

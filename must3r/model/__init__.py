@@ -15,6 +15,18 @@ def get_pointmaps_activation(decoder, verbose=True):
     return pointmaps_activation
 
 
+def get_dtype(amp):
+    if amp == "fp16":
+        dtype = torch.float16
+    elif amp == "bf16":
+        assert torch.cuda.is_bf16_supported()
+        dtype = torch.bfloat16
+    else:
+        assert not amp
+        dtype = torch.float32
+    return dtype
+
+
 def load_model(chkpt_path, encoder=None, decoder=None, device='cuda', img_size=None, memory_mode=None, verbose=True):
     ckpt = torch.load(chkpt_path, map_location='cpu', weights_only=False)
 
