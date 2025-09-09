@@ -59,8 +59,8 @@ pip3 install torch==2.7.0 torchvision==0.22.0 torchaudio==2.7.0 --index-url http
 pip3 install -U xformers==0.0.30 --index-url https://download.pytorch.org/whl/cu126
 pip3 install must3r@git+https://github.com/naver/must3r.git
 # pip3 install must3r[optional]@git+https://github.com/naver/must3r.git # adds pillow-heif
-# pip3 install must3r[curope]@git+https://github.com/naver/must3r.git # adds curope
-# pip3 install must3r[all]@git+https://github.com/naver/must3r.git # adds all optional dependencies
+# pip3 install --no-build-isolation must3r[curope]@git+https://github.com/naver/must3r.git # adds curope
+# pip3 install --no-build-isolation must3r[all]@git+https://github.com/naver/must3r.git # adds all optional dependencies
 ```
 
 #### development (no installation)
