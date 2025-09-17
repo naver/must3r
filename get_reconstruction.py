@@ -89,7 +89,7 @@ if __name__ == '__main__':
 
     camera_conf_thr = args.camera_conf_thr
     num_refinements_iterations = args.num_refinements_iterations
-    scene, outfile = get_reconstructed_scene(outdir=args.output, viser_server=None, model=model,
+    scene, outfile = get_reconstructed_scene(outdir=args.output, viser_server=None, should_save_glb=False, model=model,
                                              retrieval=args.retrieval, device=args.device,
                                              verbose=True, image_size=args.image_size, amp=args.amp,
                                              filelist=images, min_conf_thr=min_conf_thr,
@@ -103,9 +103,7 @@ if __name__ == '__main__':
                                              subsample=args.subsample, min_conf_keyframe=args.min_conf_keyframe,
                                              keyframe_overlap_thr=args.keyframe_overlap_thr, overlap_percentile=args.overlap_percentile
                                              )
-    threshold_list = [6.0, 5.0, 4.0, 3.0, 2.5, 2.0, 1.5]
-    if args.file_type == "ply":
-        threshold_list.append(min_conf_thr)  # the glb file is automatically exported by get_reconstructed_scene
+    threshold_list = [6.0, 5.0, 4.0, 3.0, 2.5, 2.0, 1.5, min_conf_thr]
     for thr in threshold_list:
         try:
             outfile = get_3D_model_from_scene(outdir=args.output, verbose=True, scene=scene, min_conf_thr=thr,

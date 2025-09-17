@@ -68,6 +68,7 @@ def get_args_parser():
     parser.add_argument('--amp', choices=[False, "bf16", "fp16"], default=False,
                         help="Use Automatic Mixed Precision, fp16 might be unstable")
     parser.add_argument("--allow_local_files", action='store_true', default=False)
+    parser.add_argument("--embed_viser", action='store_true', default=False)
     return parser
 
 
@@ -156,7 +157,7 @@ def get_3D_model_from_scene(outdir, verbose, scene, min_conf_thr=3.0, as_pointcl
 
 
 @torch.no_grad()
-def get_reconstructed_scene(outdir, viser_server, model, retrieval, device, verbose, image_size, amp,
+def get_reconstructed_scene(outdir, viser_server, should_save_glb, model, retrieval, device, verbose, image_size, amp,
                             filelist, max_bs, num_refinements_iterations,  # main params
                             execution_mode, num_mem_images, render_once, vidseq_local_context_size, keyframe_interval, slam_local_context_size, subsample, min_conf_keyframe, keyframe_overlap_thr, overlap_percentile,  # execution params
                             min_conf_thr, as_pointcloud, transparent_cams, local_pointmaps, cam_size, camera_conf_thr=0.0,  # output params
@@ -197,8 +198,11 @@ def get_reconstructed_scene(outdir, viser_server, model, retrieval, device, verb
     if verbose:
         print('preparing pointcloud')
     time_start = datetime.datetime.now()
-    outfile = get_3D_model_from_scene(outdir, verbose, scene, min_conf_thr, as_pointcloud, transparent_cams,
-                                      local_pointmaps, cam_size, camera_conf_thr=camera_conf_thr)
+    if should_save_glb:
+        outfile = get_3D_model_from_scene(outdir, verbose, scene, min_conf_thr, as_pointcloud, transparent_cams,
+                                          local_pointmaps, cam_size, camera_conf_thr=camera_conf_thr)
+    else:
+        outfile = None
 
     ellapsed = (datetime.datetime.now() - time_start)
     if verbose:
@@ -333,13 +337,14 @@ def set_execution_mode(inputfiles, execution_mode, num_mem_images, render_once, 
 
 
 def main_demo(tmpdirname, model, retrieval, device, image_size, server_name, server_port,
-              verbose=True, amp=False, with_viser=False, allow_local_files=False):
+              verbose=True, amp=False, with_viser=False, allow_local_files=False, embed_viser=False):
+    with_viser = with_viser or embed_viser
     if with_viser:
         viser_server = ViserWrapper(host=server_name)
     else:
         viser_server = None
 
-    recon_fun = functools.partial(get_reconstructed_scene, tmpdirname, viser_server, model,
+    recon_fun = functools.partial(get_reconstructed_scene, tmpdirname, viser_server, not embed_viser, model,
                                   retrieval, device, verbose, image_size, amp)
     model_from_scene_fun = functools.partial(get_3D_model_from_scene, tmpdirname, verbose)
     with gradio.Blocks(css=""".gradio-container {margin: 0 !important; min-width: 100%};""", title="MUSt3R Demo") as demo:
@@ -401,7 +406,7 @@ def main_demo(tmpdirname, model, retrieval, device, image_size, server_name, ser
             run_btn = gradio.Button("Run")
 
             # visualization options
-            with gradio.Row():
+            with gradio.Row(visible=not embed_viser):
                 with gradio.Column():
                     # adjust the confidence threshold
                     min_conf_thr = gradio.Slider(label="min_conf_thr", value=3.0, minimum=1.0, maximum=20, step=0.1)
@@ -415,7 +420,18 @@ def main_demo(tmpdirname, model, retrieval, device, image_size, server_name, ser
                     transparent_cams = gradio.Checkbox(value=False, label="Transparent cameras")
                     local_pointmaps = gradio.Checkbox(value=False, label="viz local pointmaps pointcloud")
 
-            outmodel = gradio.Model3D()
+            if embed_viser:
+                assert viser_server is not None
+                viser_html = gradio.HTML(f"""<div style="width:100%; height:600px; border:1px solid #e4e4e7; border-radius: 4px; resize:vertical; overflow:auto;">
+                    <div style="padding: 5px 12px"><span style="color: #71717a">Visualization</span><span style="float: right"><a href="http://{viser_server.address}/?fixedDpr=1" target="_blank">Full screen</a><span></span></span></div>
+                    <iframe
+                        src="http://{viser_server.address}/?fixedDpr=1"
+                        style="width:100%; height: calc(100% - 36px); border:none;">
+                    </iframe>
+                    </div>""")
+                outmodel = gradio.Model3D(visible=False, render=False)
+            else:
+                outmodel = gradio.Model3D()
 
             # events
             inputfiles.change(upload_files,
@@ -494,4 +510,4 @@ def main():
             print('Outputing stuff in', tmpdirname)
         main_demo(tmpdirname, model, args.retrieval, args.device, args.image_size,
                   server_name, args.server_port, verbose=args.verbose, amp=args.amp, with_viser=args.viser,
-                  allow_local_files=args.allow_local_files)
+                  allow_local_files=args.allow_local_files, embed_viser=args.embed_viser)

@@ -132,6 +132,10 @@ class ViserWrapper():
             for frame_id in list(self.point_nodes.keys()):
                 self.make_point_cloud(frame_id)
 
+    @property
+    def address(self):
+        return f"{self.server.get_host()}:{self.server.get_port()}"
+
     def set_images_gui_visibility(self):
         if len(self.rgb.image) > 0:
             self.rgb.visible = not self.hide_images_gui.value

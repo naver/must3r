@@ -141,24 +141,29 @@ By default, `demo.py` will open a gradio instance on localhost:7860. If you laun
 > `demo.py` is installed as `must3r_demo` (or `must3r_demo.exe`) when must3r is installed to `site-packages`. 
 
 ```bash
-python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512_retrieval_trainingfree.pth --image_size 512 --viser
+python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512_retrieval_trainingfree.pth --image_size 512 --viser --embed_viser
 
 # use --amp bf16 if your gpu supports
 # Use --local_network to make it accessible on the local network, or --server_name to specify the url manually
 # Use --server_port to change the port, by default it will search for an available port starting at 7860
 # Use --device to use a different device, by default it's "cuda"
-# --viser is used to launch the viser server at the same time as gradio (for real-time updates). You'll need to open a new tab to see this. Note: only instance is launched so it doesn't support multiple instances. It'll launch on port 8080 if available.
-# viser's viewer will try to target a fixed framerate and lower the quality when the framerate is low. To disable this behaviour, open viser with http://localhost:8080/?fixedDpr=1
 # --allow_local_files adds a second tab to load images from a local directory
+# --viser is used to launch the viser server at the same time as gradio (for real-time updates). 
+# Two options:
+# 1) use --embed_viser to replace the gradio "Model3D" component with the embedded viser page (recommended) 
+# 2) Open a new tab and access the viser url, typically http://localhost:8080/.
+# Note: only one instance of viser is launched so all clients will see the same reconstructions.
+# Viser's viewer will try to target a fixed framerate and lower the quality when the framerate is low.
+# To disable this behaviour, open viser with http://localhost:8080/?fixedDpr=1 (recommended)
 
 # other examples
 # 512 resolution bf16, allow local files
-python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512_retrieval_trainingfree.pth --image_size 512 --amp bf16 --viser --allow_local_files
+python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512_retrieval_trainingfree.pth --image_size 512 --amp bf16 --viser --embed_viser --allow_local_files
 
 # 224 resolution, fp16, allow local files
-python3 demo.py --weights /path/to/MUSt3R_224_cvpr.pth --retrieval /path/to/MUSt3R_224_retrieval_trainingfree.pth --image_size 224 --viser --allow_local_files --amp fp16
+python3 demo.py --weights /path/to/MUSt3R_224_cvpr.pth --retrieval /path/to/MUSt3R_224_retrieval_trainingfree.pth --image_size 224 --viser --embed_viser --allow_local_files --amp fp16
 # 768 resolution (will use interpolated positional embeddings)
-python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512_retrieval_trainingfree.pth --image_size 768 --amp bf16 --viser
+python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512_retrieval_trainingfree.pth --image_size 768 --amp bf16 --viser --embed_viser
 ```
 
 > [!Note]
