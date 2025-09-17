@@ -148,6 +148,7 @@ python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512
 # Use --server_port to change the port, by default it will search for an available port starting at 7860
 # Use --device to use a different device, by default it's "cuda"
 # --viser is used to launch the viser server at the same time as gradio (for real-time updates). You'll need to open a new tab to see this. Note: only instance is launched so it doesn't support multiple instances. It'll launch on port 8080 if available.
+# viser's viewer will try to target a fixed framerate and lower the quality when the framerate is low. To disable this behaviour, open viser with http://localhost:8080/?fixedDpr=1
 # --allow_local_files adds a second tab to load images from a local directory
 
 # other examples
