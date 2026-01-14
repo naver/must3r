@@ -61,7 +61,7 @@ class Co3d(DUSt3R_Co3d, MUSt3RBaseDataset):
 
     def _get_views(self, idx, resolution, memory_num_views, rng):
         # choose a scene
-        obj, instance = self.scene_list[idx // len(self.combinations)]
+        obj, instance = self.scene_list[idx // self.num_images_per_object]
         image_pool = self.scenes[obj, instance]
         im1_idx = idx % self.num_images_per_object
 
