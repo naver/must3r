@@ -13,9 +13,10 @@ import must3r.tools.path_to_dust3r  # noqa
 from dust3r.post_process import estimate_focal_knowing_depth
 
 
-@torch.autocast("cuda", dtype=torch.float32)
+@torch.autocast("cuda", enabled=False)
 def postprocess(pointmaps, pointmaps_activation=ActivationType.NORM_EXP, compute_cam=False):
     out = {}
+    pointmaps = pointmaps.float()
     channels = pointmaps.shape[-1]
     out['pts3d'] = pointmaps[..., :3]
     out['pts3d'] = apply_activation(out['pts3d'], activation=pointmaps_activation)

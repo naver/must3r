@@ -415,7 +415,7 @@ def train_one_epoch(encoder: torch.nn.Module, decoder: torch.nn.Module,
     np.random.seed(seed)
     rng = np.random.default_rng(seed=args.seed + epoch)
 
-    dtype = get_dtype(args)
+    dtype = get_dtype(args.amp)
     for data_iter_step, batch in enumerate(metric_logger.log_every(data_loader, args.print_freq, header)):
         epoch_f = epoch + data_iter_step / len(data_loader)
         progress = epoch_f / args.epochs
@@ -453,7 +453,7 @@ def train_one_epoch(encoder: torch.nn.Module, decoder: torch.nn.Module,
                                        train_decoder_skip=len(to_skip_batches),
                                        max_bs=args.max_batch_size,
                                        to_render=to_render, encoder_requires_grad=finetune_encoder)
-        with torch.autocast("cuda", dtype=torch.float32):
+        with torch.autocast("cuda", enabled=False):
             x_out_0 = postprocess(x_out_0, pointmaps_activation=args.pointmaps_activation)
             x_out = postprocess(x_out, pointmaps_activation=args.pointmaps_activation)
 

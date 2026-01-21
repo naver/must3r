@@ -43,7 +43,7 @@ class Dust3rEncoder(BaseTransformer):
         self.patch_embed = get_patch_embed(patch_embed_name, img_size, patch_size, patch_embed_dim)
         self.grid_size = self.patch_embed.grid_size
 
-    @torch.autocast("cuda", dtype=torch.float32)
+    @torch.autocast("cuda", enabled=False)
     def forward(self, img, true_shape):
         x, pos = self.patch_embed(img, true_shape=true_shape)
         for blk in self.blocks_enc:

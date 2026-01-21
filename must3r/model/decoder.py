@@ -149,7 +149,7 @@ class MUSt3R(BaseTransformer):
     def _compute_prediction_head(self, true_shape, B, nimgs, feats):
         feats[-1] = self.norm_dec(feats[-1])
         decout = feats
-        with torch.autocast("cuda", dtype=torch.float32):
+        with torch.autocast("cuda", enabled=False):
             decout = [tok.float() for tok in decout]
             x = self._head_wrapper(decout, true_shape.view(B * nimgs, *true_shape.shape[2:]))
             x = x.view(B, nimgs, *x.shape[1:])
