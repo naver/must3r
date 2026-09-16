@@ -32,6 +32,7 @@ setup(
         'cython',
         'pyaml',
         'open3d',
+        'pykdtree',
         'viser>=1.0.0',
         'croco @ git+https://github.com/naver/croco.git@croco_module#egg=croco',
         'dust3r @ git+https://github.com/naver/dust3r.git@dust3r_setup#egg=dust3r',

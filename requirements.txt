@@ -4,3 +4,4 @@ scikit-learn
 open3d
 viser>=1.0.0
 gradio>=5.0.0
+pykdtree

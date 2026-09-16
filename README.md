@@ -202,25 +202,48 @@ python demo.py --weights /path/to/MUSt3R_512.pth --retrieval /path/to/MUSt3R_512
 
 ```bash
 # examples
-# slam demo from a webcam (512 model)
-python slam.py --chkpt /path/to/MUSt3R_512.pth --res 512 --subsamp 4 --gui --input cam:0 
+# slam demo from a webcam (512 model), fp16 and background refresh of the memory frames
+python slam.py --chkpt /path/to/MUSt3R_512.pth --input cam:0 --res 512 --subsamp 8 --gui --searcher pykdtree-quadrant_x2 --viz_conf 2.5 --amp fp16 --refresh_memory
 
-# slam demo from a directory of images (224 model)
+# slam demo from a directory of images (512 model)
 python slam.py \
-	--chkpt "/path/to/MUSt3R_224_cvpr.pth" \
-	--res 224 \
-	--subsamp 2 \
-  --keyframe_overlap_thr 0.05 \
-  --min_conf_keyframe 1.5 \
-  --overlap_percentile 85 \
-	--input "/path_to/TUM_RGBD/rgbd_dataset_freiburg1_xyz/rgb" \  # can be a folder of video frames, or a webcam: cam:0
-	--gui
+	--chkpt /path/to/MUSt3R_512.pth \
+	--input "/path_to/TUM_RGBD/rgbd_dataset_freiburg1_xyz/rgb" \  # can be a folder of video frames, a video file, or a webcam: cam:0
+	--res 512 --subsamp 8 --gui --searcher pykdtree-quadrant_x2 --viz_conf 2.5 --amp fp16 --refresh_memory
 
 # slam demo without a gui (it will write final memory state <memory.pkl> and camera trajectory <all_poses.npz>, optionally rerendered with --rerender)
-python slam.py --chkpt /path/to/MUSt3R_512.pth --res 512 --subsamp 4 --input /path/to/video.mp4 --output /path/to/export
+python slam.py --chkpt /path/to/MUSt3R_512.pth --input /path/to/video.mp4 --output /path/to/export --res 512 --subsamp 8 --searcher pykdtree-quadrant_x2 --viz_conf 2.5 --amp fp16 --refresh_memory
+
+# multi-agent slam demo: several sources share the same memory / coordinate system (one webcam per agent here, videos work too)
+python slam.py --chkpt /path/to/MUSt3R_512.pth --input cam:0 cam:1 --res 512 --subsamp 8 --gui --searcher pykdtree-quadrant_x2 --viz_conf 2.5 --amp fp16 --refresh_memory
 ```
 
-Hit the start toggle on the top right
+> [!IMPORTANT]
+> For faster inference, compile the RoPE cuda kernels (curope), see the [installation](#installation) section: `cd dust3r/croco/models/curope/ && pip install .` (or `pip install --no-build-isolation must3r[curope]`). Without them a much slower pytorch implementation of the positional embeddings is used (`Warning, cannot find cuda-compiled version of RoPE2D`), which noticeably lowers the framerate of the online demo.
+
+Hit the start toggle on the top right. Keyframes (frames added to the memory) are drawn in green, the current frame in the color of its camera. Toggling start off resets the memory and rewinds the input.
+
+#### Recent changes
+
+The online demo was reworked for live camera usage:
+
+- **Background memory refresh** (`--refresh_memory`): a `MemoryRefresher` thread re-renders the memory frames against the *full* current memory in the gpu idle time of the live loop (FIFO passes over the keyframes, looping again whenever new frames enter the memory). Refreshed keyframes get updated pointmaps, confidences and camera poses, which are swapped in the 3D view and in the exported trajectory. The latent memory tokens are left untouched. A two-priority gpu lock guarantees the live loop is never starved: refresh forwards only run when the live loop is not waiting for the gpu. Tune with `--refresh_bs` (memory frames per refresh forward) and `--refresh_duty` (max fraction of wall-clock time the refresher may hold the gpu, default 0.5).
+- **Mixed precision** (`--amp fp16|bf16`): the decoder forward runs under autocast (the encoder and the camera pose estimation stay in float32).
+- **Lower latency input**: webcams are read by a dedicated thread (`CameraStream`, V4L2/MJPG, resolution matched to `--res`) so that the model always processes the latest frame instead of a buffered backlog, and the next frame is prefetched while the gpu runs. Image preprocessing uses cv2 instead of PIL.
+- **Faster overlap estimation**: `--searcher pykdtree-quadrant_x2` uses [pykdtree](https://github.com/storpipfugl/pykdtree) instead of scipy, the search trees are rebuilt lazily (once per query batch instead of once per keyframe), and points are transferred to the cpu in a single copy. Increase `--subsamp` for higher framerates at high resolution.
+- **Keyframe selection**: `--min_keyframe_spacing N` forbids two keyframes closer than N frames, `--force_first_keyframes N` forces the first N frames into the memory.
+- **Viewer**: frames with a mean confidence below 1.1 are not added to the 3D view (typically motion blur or a covered camera), `--viz_conf` controls the confidence threshold of the displayed points, `--hide_cameras` hides the frustrums.
+- **Replay**: `--export_replay /path/to/replay.pkl` (no gui) records all predictions, `--replay /path/to/replay.pkl --gui` replays them in the gui without running the model.
+- **Memory files**: `memory.pkl` now also stores the keyframe indices, `--load_memory /path/to/memory.pkl --same_kf` re-uses them as keyframes on a second pass. Older memory files still load. `--skip_every N` (process every N-th frame of a video/image folder) is now honored.
+
+#### Options
+
+- `--input`: one or several sources, e.g. `cam:0`, `/path/to/video.mp4`, `/path/to/image_folder` (use `--image_string` to filter image names). With several sources (multi-agent, e.g. `--input cam:0 cam:1`), the frames are read alternatively from each source and all agents share the same memory, so they are localized in a common coordinate system. Each agent gets its own frustrum color and focal length estimate; the "Next agent" button switches the video/depth/confidence panels and the follow-cam between agents.
+- `--res 224|512`: inference resolution, must match the checkpoint.
+- `--keyframe_overlap_thr`, `--min_conf_keyframe`, `--overlap_percentile`, `--overlap_mode`: keyframe selection hyperparameters (an incoming frame is added to the memory when its overlap with the memory pointmaps is low enough and its confidence high enough).
+- `--varying_focals`: estimate the focal length per frame instead of a single one for the sequence (e.g. zooming).
+- `--num_init_frames`: number of initial frames forwarded together to initialize the memory.
+- `--output /path/to/export` (no gui): writes the camera trajectory `all_poses.npz` and the final memory `memory.pkl`; `--rerender` re-predicts all frames from the full memory at the end (`--rerender_bs` batch size), `--filter` applies a laplacian smoothing to the trajectory.
 
 ## Training
 

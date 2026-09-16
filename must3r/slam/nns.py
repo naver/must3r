@@ -2,6 +2,11 @@
 from scipy.spatial import KDTree
 import numpy as np
 from functools import partial
+try:
+    from pykdtree.kdtree import KDTree as pyKDTree
+    has_pykdtree = True
+except ImportError:
+    has_pykdtree = False
 
 from must3r.slam.tools import get_quadrant_id, ravel3d, to_np
 
@@ -11,6 +16,8 @@ def get_searcher(method, isquadrant=False):
         out = QuandrantSearcher(method)
     elif "kdtree-scipy" in method:
         out = KDTree_scipy()
+    elif "pykdtree" in method:
+        out = KDTree_pykdtree()
     elif method == 'none':
         out = None
     else:
@@ -22,7 +29,7 @@ def get_searcher(method, isquadrant=False):
 class Base_NN():
     """
     Base NN class, that can add observations to the search struct and query points from it
-    IO is torch Tensors
+    IO is torch Tensors or numpy arrays
     """
 
     def __init__(self, subsamp=None):
@@ -37,29 +44,76 @@ class Base_NN():
         raise NotImplementedError("Overload this function for your needs")
 
 
-class KDTree_scipy(Base_NN):
+class _LazyKDTree(Base_NN):
     """
-    Simple KDTree from scipy
+    KDTree with lazy rebuild: the tree is only (re)built on the first query after new points were added
     """
 
     def __init__(self):
         super().__init__()
-        self.all_points = []
+        self._points_list = []
         self.kdtree = None
+        self._dirty = False
+
+    def _build_tree(self, all_points):
+        raise NotImplementedError("Overload this function for your needs")
+
+    def _query_tree(self, pts):
+        raise NotImplementedError("Overload this function for your needs")
+
+    def __getstate__(self):
+        # the tree itself is not picklable (pykdtree) and is cheap to rebuild from the points
+        state = self.__dict__.copy()
+        state['kdtree'] = None
+        state['_dirty'] = len(self._points_list) > 0
+        return state
 
     def add_pts(self, pts, **kw):
-        if len(self.all_points) == 0:
-            self.all_points = ravel3d(pts)
-        else:
-            self.all_points = np.concatenate([self.all_points, ravel3d(pts)])
-        self.kdtree = KDTree(self.all_points)
+        self._points_list.append(ravel3d(pts))
+        self._dirty = True
+
+    def _rebuild(self):
+        if self._dirty:
+            all_points = np.concatenate(self._points_list) if len(self._points_list) > 1 else self._points_list[0]
+            self.kdtree = self._build_tree(all_points)
+            self._dirty = False
 
     def query(self, pts, **kw):
+        self._rebuild()
+        pts = ravel3d(pts)
         if self.kdtree is None:
             distances = np.full(pts.shape[0], np.inf)
         else:
-            distances, indices = self.kdtree.query(ravel3d(pts), k=1, workers=4)
+            distances, _ = self._query_tree(pts)
         return distances
+
+
+class KDTree_scipy(_LazyKDTree):
+    """
+    Simple KDTree from scipy
+    """
+
+    def _build_tree(self, all_points):
+        return KDTree(all_points)
+
+    def _query_tree(self, pts):
+        return self.kdtree.query(pts, k=1, workers=4)
+
+
+class KDTree_pykdtree(_LazyKDTree):
+    """
+    Simple KDTree from pykdtree (supports float32, faster than scipy)
+    """
+
+    def __init__(self):
+        assert has_pykdtree, "Needs: pip install pykdtree"
+        super().__init__()
+
+    def _build_tree(self, all_points):
+        return pyKDTree(all_points)
+
+    def _query_tree(self, pts):
+        return self.kdtree.query(pts, k=1)
 
 
 class QuandrantSearcher(Base_NN):

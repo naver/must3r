@@ -1,9 +1,18 @@
 # Copyright (C) 2025-present Naver Corporation. All rights reserved.
 import numpy as np
+import torch
 
 
-def ravel3d(x): return x.view(-1, 3).cpu().numpy()
-def to_np(x): return x.cpu().numpy()
+def ravel3d(x):
+    if isinstance(x, torch.Tensor):
+        return x.view(-1, 3).cpu().numpy()
+    return np.ascontiguousarray(x.reshape(-1, 3))
+
+
+def to_np(x):
+    if isinstance(x, torch.Tensor):
+        return x.cpu().numpy()
+    return np.asarray(x)
 
 
 def get_quadrant_id(rays, quadrant_divider=4, eps=1e-5):

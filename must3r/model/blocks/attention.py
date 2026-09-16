@@ -16,6 +16,9 @@ except Exception as e:
 
 
 _use_memory_efficient_attention = False
+# dtypes for which xformers raised NotImplementedError (no kernel for these inputs on this gpu, e.g. float32 on
+# gpus too recent for the cutlass kernels): we fall back to torch's scaled_dot_product_attention for them
+_xformers_unsupported_dtypes = set()
 
 
 def toggle_memory_efficient_attention(enabled: bool = True):
@@ -23,8 +26,8 @@ def toggle_memory_efficient_attention(enabled: bool = True):
     _use_memory_efficient_attention = enabled
 
 
-def is_memory_efficient_attention_enabled():
-    return _use_memory_efficient_attention
+def is_memory_efficient_attention_enabled(dtype=None):
+    return _use_memory_efficient_attention and dtype not in _xformers_unsupported_dtypes
 
 
 class CoreAttention (nn.Module):
@@ -43,7 +46,8 @@ class CoreAttention (nn.Module):
             q = self.pos_embed(q, qpos)
             k = self.pos_embed(k, kpos)
 
-        if is_memory_efficient_attention_enabled() and (attn_mask is None or attn_mask.dtype != torch.bool):
+        x = None
+        if is_memory_efficient_attention_enabled(v.dtype) and (attn_mask is None or attn_mask.dtype != torch.bool):
             assert has_xformers
             # print('using xformers')
             # q, k, v are batch, num_heads, seqlen, K
@@ -59,10 +63,18 @@ class CoreAttention (nn.Module):
             if k.dtype != v.dtype:
                 k = k.to(v.dtype)
             assert attn_mask is None or attn_mask.dtype == v.dtype  # because casting it here will mess up stride
-            q, k, v = map(lambda val: val.reshape(B * self.num_heads, -1, D), (q, k, v))
-            x = xformers.ops.memory_efficient_attention(q, k, v, attn_bias=attn_mask, p=self.attn_drop_val)
-            x = x.reshape(B, self.num_heads, -1, D).transpose(1, 2).reshape(B, -1, C)
-        elif has_scaled_dot_product_attention and (attn_mask is None or attn_mask.dtype == torch.bool):
+            q_, k_, v_ = map(lambda val: val.reshape(B * self.num_heads, -1, D), (q, k, v))
+            try:
+                x = xformers.ops.memory_efficient_attention(q_, k_, v_, attn_bias=attn_mask, p=self.attn_drop_val)
+                x = x.reshape(B, self.num_heads, -1, D).transpose(1, 2).reshape(B, -1, C)
+            except NotImplementedError:
+                assert has_scaled_dot_product_attention, "no xformers kernel for these inputs and no torch sdpa"
+                print(f"Warning: xformers has no memory_efficient_attention kernel for {v.dtype} inputs on this gpu, "
+                      f"falling back to torch scaled_dot_product_attention for this dtype")
+                _xformers_unsupported_dtypes.add(v.dtype)
+        if x is not None:
+            pass
+        elif has_scaled_dot_product_attention and (attn_mask is None or attn_mask.dtype in (torch.bool, v.dtype)):
             if q.dtype != v.dtype:
                 q = q.to(v.dtype)
             if k.dtype != v.dtype:
